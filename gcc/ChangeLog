@@ -1,3 +1,11 @@
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64-protos.h (scale_addr_mode_cost): New.
+	(cpu_addrcost_table): Use it.
+	* config/aarch64/aarch64.c (generic_addrcost_table): Initialize it.
+	(aarch64_address_cost): Rewrite using aarch64_classify_address,
+	move it.
+
 2014-04-22  Ramana Radhakrishnan  <ramana.radhakrishnan@arm.com>
 
 	* config/aarch64/aarch64.c (TARGET_FLAGS_REGNUM): Define.
