@@ -5412,7 +5412,6 @@ cost_minus:
 
     case MOD:
     case UMOD:
-      *cost = COSTS_N_INSNS (2);
       if (speed)
 	{
 	  if (GET_MODE_CLASS (GET_MODE (x)) == MODE_INT)
@@ -5429,15 +5428,15 @@ cost_minus:
 
     case DIV:
     case UDIV:
-      *cost = COSTS_N_INSNS (1);
+    case SQRT:
       if (speed)
 	{
-	  if (GET_MODE_CLASS (GET_MODE (x)) == MODE_INT)
-	    *cost += extra_cost->mult[GET_MODE (x) == DImode].idiv;
-	  else if (GET_MODE (x) == DFmode)
-	    *cost += extra_cost->fp[1].div;
-	  else if (GET_MODE (x) == SFmode)
-	    *cost += extra_cost->fp[0].div;
+	  if (GET_MODE_CLASS (mode) == MODE_INT)
+	    /* There is no integer SQRT, so only DIV and UDIV can get
+	       here.  */
+	    *cost += extra_cost->mult[mode == DImode].idiv;
+	  else
+	    *cost += extra_cost->fp[mode == DFmode].div;
 	}
       return false;  /* All arguments need to be in registers.  */
 
