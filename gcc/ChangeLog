@@ -1,3 +1,8 @@
+2014-06-02  Tom de Vries  <tom@codesourcery.com>
+
+	* config/aarch64/aarch64.c (aarch64_float_const_representable_p): Handle
+	case that x has VOIDmode.
+
 2015-02-17  James Greenhalgh  <james.greenhalgh@arm.com>
 
 	* haifa-sched.c (recompute_todo_spec): Treat SCHED_GROUP_P
