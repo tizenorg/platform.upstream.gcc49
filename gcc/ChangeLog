@@ -1,3 +1,8 @@
+2014-06-03  Andrew Pinski  <apinski@cavium.com>
+
+	* config/aarch64/aarch64.c (aarch64_if_then_else_costs): New function.
+	(aarch64_rtx_costs): Use aarch64_if_then_else_costs.
+
 2014-06-23  James Greenhalgh  <james.greenhalgh@arm.com>
 
 	* config/aarch64/aarch64.md (*addsi3_aarch64): Add alternative in
