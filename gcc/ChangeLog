@@ -1,3 +1,8 @@
+014-06-03  Andrew Pinski  <apinski@cavium.com>
+
+	* config/aarch64/aarch64.c (aarch64_if_then_else_costs): New function.
+	(aarch64_rtx_costs): Use aarch64_if_then_else_costs.
+
 2014-06-02  Tom de Vries  <tom@codesourcery.com>
 
 	* config/aarch64/aarch64.c (aarch64_float_const_representable_p): Handle
