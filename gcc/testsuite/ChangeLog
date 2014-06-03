@@ -1,3 +1,7 @@
+2014-06-03  Andrew Pinski  <apinski@cavium.com>
+
+	* gcc.c-torture/compile/20140528-1.c: New testcase.
+
 2014-06-23  James Greenhalgh  <james.greenhalgh@arm.com>
 
 	* gcc.target/aarch64/scalar_shift_1.c: Fix expected assembler.
