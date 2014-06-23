@@ -1,3 +1,6 @@
+2014-06-23  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* gcc.target/aarch64/scalar_shift_1.c: Fix expected assembler.
 2015-06-26  Release Manager
 
 	* GCC 4.9.3 released.
