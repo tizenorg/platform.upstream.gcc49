@@ -101,7 +101,7 @@ Texts being (a) (see below), and with the Back-Cover Texts being (b)
 @ifinfo
 @dircategory Software development
 @direntry
-* gfortran: (gfortran).                  The GNU Fortran Compiler.
+* @value{fngfortran}: (@value{fngfortran}).                  The GNU Fortran Compiler.
 @end direntry
 This file documents the use and the internals of
 the GNU Fortran compiler, (@command{gfortran}).

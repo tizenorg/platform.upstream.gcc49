@@ -114,7 +114,8 @@ fortran.tags: force
 	cd $(srcdir)/fortran; etags -o TAGS.sub *.c *.h; \
 	etags --include TAGS.sub --include ../TAGS.sub
 
-fortran.info: doc/gfortran.info doc/gfc-internals.info
+INFO_FORTRAN_NAME = $(shell echo gfortran|sed '$(program_transform_name)')
+fortran.info: doc/$(INFO_FORTRAN_NAME).info
 fortran.dvi: doc/gfortran.dvi doc/gfc-internals.dvi
 
 F95_HTMLFILES = $(build_htmldir)/gfortran
@@ -186,10 +187,10 @@ GFORTRAN_TEXI = \
   $(srcdir)/doc/include/gcc-common.texi \
   gcc-vers.texi
 
-doc/gfortran.info: $(GFORTRAN_TEXI)
+doc/$(INFO_FORTRAN_NAME).info: $(GFORTRAN_TEXI)
 	if [ x$(BUILD_INFO) = xinfo ]; then \
 	  rm -f doc/gfortran.info-*; \
-	  $(MAKEINFO) -I $(srcdir)/doc/include -I $(srcdir)/fortran \
+	  $(MAKEINFO) $(MAKEINFODEFS) -I $(srcdir)/doc/include -I $(srcdir)/fortran \
 	    -o $@ $<; \
 	else true; fi
 
@@ -252,7 +253,7 @@ fortran.install-common: install-finclude-dir installdirs
 
 fortran.install-plugin:
 
-fortran.install-info: $(DESTDIR)$(infodir)/gfortran.info
+fortran.install-info: $(DESTDIR)$(infodir)/$(INFO_FORTRAN_NAME).info
 
 fortran.install-man: $(DESTDIR)$(man1dir)/$(GFORTRAN_INSTALL_NAME)$(man1ext)
 
@@ -270,7 +271,7 @@ fortran.uninstall:
 	rm -rf $(DESTDIR)$(bindir)/$(GFORTRAN_INSTALL_NAME)$(exeext); \
 	rm -rf $(DESTDIR)$(man1dir)/$(GFORTRAN_INSTALL_NAME)$(man1ext); \
 	rm -rf $(DESTDIR)$(bindir)/$(GFORTRAN_TARGET_INSTALL_NAME)$(exeext); \
-	rm -rf $(DESTDIR)$(infodir)/gfortran.info*
+	rm -rf $(DESTDIR)$(infodir)/$(INFO_FORTRAN_NAME).info*
 
 #
 # Clean hooks:

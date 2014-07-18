@@ -94,7 +94,7 @@ Free Documentation License}''.
 @end ifinfo
 @dircategory Software development
 @direntry
-* gccinstall: (gccinstall).    Installing the GNU Compiler Collection.
+* @value{fngccinstall}: (@value{fngccinstall}).    Installing the GNU Compiler Collection.
 @end direntry
 
 @c Part 3 Titlepage and Copyright

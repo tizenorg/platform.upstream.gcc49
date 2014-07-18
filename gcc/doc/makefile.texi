@@ -139,7 +139,7 @@ regardless of how it itself was compiled.
 Builds a compiler with profiling feedback information.  In this case,
 the second and third stages are named @samp{profile} and @samp{feedback},
 respectively.  For more information, see
-@ref{Building,,Building with profile feedback,gccinstall,Installing GCC}.
+@ref{Building,,Building with profile feedback,@value{fngccinstall},Installing GCC}.
 
 @item restrap
 Restart a bootstrap, so that everything that was not built with

@@ -223,7 +223,6 @@ MULTIDIRS =
 MULTISUBDIR = 
 MULTIDO = true
 MULTICLEAN = true
-INFO_DEPS = doc/libffi.info
 am__TEXINFO_TEX_DIR = $(srcdir)/../gcc/doc/include
 DVIS = doc/libffi.dvi
 PDFS = doc/libffi.pdf
@@ -429,6 +428,8 @@ TEXINFO_TEX = ../gcc/doc/include/texinfo.tex
 # Defines info, dvi, pdf and html targets
 MAKEINFOFLAGS = -I $(srcdir)/../gcc/doc/include
 info_TEXINFOS = doc/libffi.texi
+INFO_LIBFFI_NAME = $(shell echo libffi | sed '${program_transform_name}')
+INFO_DEPS = doc/$(INFO_LIBFFI_NAME).info
 @GENINSRC_FALSE@STAMP_GENINSRC = 
 
 # AM_CONDITIONAL on configure option --generated-files-in-srcdir
@@ -437,7 +438,7 @@ info_TEXINFOS = doc/libffi.texi
 
 # AM_CONDITIONAL on configure check ACX_CHECK_PROG_VER([MAKEINFO])
 @BUILD_INFO_TRUE@STAMP_BUILD_INFO = stamp-build-info
-CLEANFILES = $(STAMP_GENINSRC) $(STAMP_BUILD_INFO) doc/libffi.info
+CLEANFILES = $(STAMP_GENINSRC) $(STAMP_BUILD_INFO) doc/$(INFO_LIBFFI_NAME).info
 MAINTAINERCLEANFILES = $(srcdir)/doc/libffi.info
 
 # Work around what appears to be a GNU make bug handling MAKEFLAGS
@@ -1683,14 +1684,15 @@ uninstall-am: uninstall-dvi-am uninstall-html-am uninstall-info-am \
 
 all-local: $(STAMP_GENINSRC)
 
-stamp-geninsrc: doc/libffi.info
-	cp -p $(top_builddir)/doc/libffi.info $(srcdir)/doc/libffi.info
+$(srcdir)/doc/libffi.info: stamp-geninsrc
+stamp-geninsrc: doc/$(INFO_LIBFFI_NAME).info
+	cp -p $(top_builddir)/doc/$(INFO_LIBFFI_NAME).info $(srcdir)/doc/libffi.info
 	@touch $@
 
-doc/libffi.info: $(STAMP_BUILD_INFO)
+doc/$(INFO_LIBFFI_NAME).info: $(STAMP_BUILD_INFO)
 
 stamp-build-info: doc/libffi.texi $(srcdir)/doc/version.texi doc/$(am__dirstamp)
-	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -I $(srcdir)/doc -o doc/libffi.info $(srcdir)/doc/libffi.texi
+	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -D 'fnlibffi $(INFO_LIBFFI_NAME)' -I $(srcdir)/doc -o doc/$(INFO_LIBFFI_NAME).info $(srcdir)/doc/libffi.texi
 	@touch $@
 
 # Multilib support.  Automake should provide these on its own.
