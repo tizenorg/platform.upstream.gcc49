@@ -2786,8 +2786,27 @@ install-no-fixedincludes:
 
 doc: $(BUILD_INFO) $(GENERATED_MANPAGES)
 
-INFOFILES = doc/cpp.info doc/gcc.info doc/gccint.info \
-            doc/gccinstall.info doc/cppinternals.info
+INFO_CPP_NAME = $(shell echo cpp|sed '$(program_transform_name)')
+INFO_GCC_NAME = $(shell echo gcc|sed '$(program_transform_name)')
+INFO_GXX_NAME = $(shell echo g++|sed '$(program_transform_name)')
+INFO_GCCINT_NAME = $(shell echo gccint|sed '$(program_transform_name)')
+INFO_GCCINSTALL_NAME = $(shell echo gccinstall|sed '$(program_transform_name)')
+INFO_CPPINT_NAME = $(shell echo cppinternals|sed '$(program_transform_name)')
+
+INFO_FORTRAN_NAME = $(shell echo gfortran|sed '$(program_transform_name)')
+INFO_GCJ_NAME = $(shell echo gcj|sed '$(program_transform_name)')
+
+INFOFILES = doc/$(INFO_CPP_NAME).info doc/$(INFO_GCC_NAME).info \
+            doc/$(INFO_GCCINT_NAME).info \
+            doc/$(INFO_GCCINSTALL_NAME).info doc/$(INFO_CPPINT_NAME).info
+
+MAKEINFODEFS = -D 'fncpp $(INFO_CPP_NAME)' -D 'fngcc $(INFO_GCC_NAME)' \
+               -D 'fngxx $(INFO_GXX_NAME)' \
+               -D 'fngccint $(INFO_GCCINT_NAME)' \
+               -D 'fngccinstall $(INFO_GCCINSTALL_NAME)' \
+               -D 'fncppint $(INFO_CPPINT_NAME)' \
+               -D 'fngfortran $(INFO_FORTRAN_NAME)' \
+               -D 'fngcj $(INFO_GCJ_NAME)'
 
 info: $(INFOFILES) lang.info @GENINSRC@ srcinfo lang.srcinfo
 
@@ -2842,21 +2861,41 @@ gcc-vers.texi: $(BASEVER) $(DEVPHASE)
 # patterns.  To use them, put each of the specific targets with its
 # specific dependencies but no build commands.
 
-doc/cpp.info: $(TEXI_CPP_FILES)
-doc/gcc.info: $(TEXI_GCC_FILES)
-doc/gccint.info: $(TEXI_GCCINT_FILES)
-doc/cppinternals.info: $(TEXI_CPPINT_FILES)
-
+# Generic entry to handle info files, which are not renamed (currently Ada)
 doc/%.info: %.texi
 	if [ x$(BUILD_INFO) = xinfo ]; then \
 		$(MAKEINFO) $(MAKEINFOFLAGS) -I . -I $(gcc_docdir) \
 			-I $(gcc_docdir)/include -o $@ $<; \
 	fi
 
-# Duplicate entry to handle renaming of gccinstall.info
-doc/gccinstall.info: $(TEXI_GCCINSTALL_FILES)
+doc/$(INFO_CPP_NAME).info: $(TEXI_CPP_FILES)
 	if [ x$(BUILD_INFO) = xinfo ]; then \
-		$(MAKEINFO) $(MAKEINFOFLAGS) -I $(gcc_docdir) \
+		$(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFODEFS) -I $(gcc_docdir) \
+			-I $(gcc_docdir)/include -o $@ $<; \
+	fi
+
+doc/$(INFO_GCC_NAME).info: $(TEXI_GCC_FILES)
+	if [ x$(BUILD_INFO) = xinfo ]; then \
+		$(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFODEFS) -I $(gcc_docdir) \
+			-I $(gcc_docdir)/include -o $@ $<; \
+	fi
+
+doc/$(INFO_GCCINT_NAME).info: $(TEXI_GCCINT_FILES)
+	if [ x$(BUILD_INFO) = xinfo ]; then \
+		$(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFODEFS) -I $(gcc_docdir) \
+			-I $(gcc_docdir)/include -o $@ $<; \
+	fi
+
+doc/$(INFO_CPPINT_NAME).info: $(TEXI_CPPINT_FILES)
+	if [ x$(BUILD_INFO) = xinfo ]; then \
+		$(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFODEFS) -I $(gcc_docdir) \
+			-I $(gcc_docdir)/include -o $@ $<; \
+	fi
+
+# Duplicate entry to handle renaming of gccinstall.info
+doc/$(INFO_GCCINSTALL_NAME).info: $(TEXI_GCCINSTALL_FILES)
+	if [ x$(BUILD_INFO) = xinfo ]; then \
+		$(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFODEFS) -I $(gcc_docdir) \
 			-I $(gcc_docdir)/include -o $@ $<; \
 	fi
 
@@ -3234,11 +3273,11 @@ install-driver: installdirs xgcc$(exeext)
 # $(INSTALL_DATA) might be a relative pathname, so we can't cd into srcdir
 # to do the install.
 install-info:: doc installdirs \
-	$(DESTDIR)$(infodir)/cpp.info \
-	$(DESTDIR)$(infodir)/gcc.info \
-	$(DESTDIR)$(infodir)/cppinternals.info \
-	$(DESTDIR)$(infodir)/gccinstall.info \
-	$(DESTDIR)$(infodir)/gccint.info \
+	$(DESTDIR)$(infodir)/$(INFO_CPP_NAME).info \
+	$(DESTDIR)$(infodir)/$(INFO_GCC_NAME).info \
+	$(DESTDIR)$(infodir)/$(INFO_CPPINT_NAME).info \
+	$(DESTDIR)$(infodir)/$(INFO_GCCINSTALL_NAME).info \
+	$(DESTDIR)$(infodir)/$(INFO_GCCINT_NAME).info \
 	lang.install-info
 
 $(DESTDIR)$(infodir)/%.info: doc/%.info installdirs
@@ -3445,8 +3484,11 @@ uninstall: lang.uninstall
 	-rm -rf $(DESTDIR)$(bindir)/$(GCOV_INSTALL_NAME)$(exeext)
 	-rm -rf $(DESTDIR)$(man1dir)/$(GCC_INSTALL_NAME)$(man1ext)
 	-rm -rf $(DESTDIR)$(man1dir)/cpp$(man1ext)
-	-rm -f $(DESTDIR)$(infodir)/cpp.info* $(DESTDIR)$(infodir)/gcc.info*
-	-rm -f $(DESTDIR)$(infodir)/cppinternals.info* $(DESTDIR)$(infodir)/gccint.info*
+	-rm -f $(DESTDIR)$(infodir)/$(INFO_CPP_NAME).info*
+	-rm -f $(DESTDIR)$(infodir)/$(INFO_GCC_NAME).info*
+	-rm -f $(DESTDIR)$(infodir)/$(INFO_CPPINT_NAME).info*
+	-rm -f $(DESTDIR)$(infodir)/$(INFO_GCCINT_NAME).info*
+	-rm -f $(DESTDIR)$(infodir)/$(INFO_GCCINSTALL_NAME).info*
 	for i in ar nm ranlib ; do \
 	  install_name=`echo gcc-$$i|sed '$(program_transform_name)'`$(exeext) ;\
 	  target_install_name=$(target_noncanonical)-`echo gcc-$$i|sed '$(program_transform_name)'`$(exeext) ; \

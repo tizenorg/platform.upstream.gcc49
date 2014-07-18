@@ -55,25 +55,25 @@ man page gfdl(7).
 @format
 @dircategory Software development
 @direntry
-* Gcj: (gcj).               Ahead-of-time compiler for the Java language
+* @value{fngcj}: (@value{fngcj}).               Ahead-of-time compiler for the Java language
 @end direntry
 
 @dircategory Individual utilities
 @direntry
-* jcf-dump: (gcj)Invoking jcf-dump.
+* jcf-dump: (@value{fngcj}) Invoking jcf-dump.
                             Print information about Java class files
-* gij: (gcj)Invoking gij.   GNU interpreter for Java bytecode
-* gcj-dbtool: (gcj)Invoking gcj-dbtool.
+* gij: (@value{fngcj}) Invoking gij.   GNU interpreter for Java bytecode
+* gcj-dbtool: (@value{fngcj}) Invoking gcj-dbtool.
                             Tool for manipulating class file databases.
-* jv-convert: (gcj)Invoking jv-convert.
+* jv-convert: (@value{fngcj}) Invoking jv-convert.
                             Convert file from one encoding to another
-* grmic: (gcj)Invoking grmic.
+* grmic: (@value{fngcj}) Invoking grmic.
                             Generate stubs for Remote Method Invocation.
-* gc-analyze: (gcj)Invoking gc-analyze.
+* gc-analyze: (@value{fngcj}) Invoking gc-analyze.
                             Analyze Garbage Collector (GC) memory dumps.
-* aot-compile: (gcj)Invoking aot-compile.
+* aot-compile: (@value{fngcj})Invoking aot-compile.
                             Compile bytecode to native and generate databases.
-* rebuild-gcj-db: (gcj)Invoking rebuild-gcj-db.
+* rebuild-gcj-db: (@value{fngcj})Invoking rebuild-gcj-db.
                             Merge the per-solib databases made by aot-compile
                             into one system-wide database.
 @end direntry
@@ -159,7 +159,7 @@ and the Info entries for @file{gcj} and @file{gcc}.
 
 As @command{gcj} is just another front end to @command{gcc}, it supports many
 of the same options as gcc.  @xref{Option Summary, , Option Summary,
-gcc, Using the GNU Compiler Collection (GCC)}.  This manual only documents the
+@value{fngcc}, Using the GNU Compiler Collection (GCC)}.  This manual only documents the
 options specific to @command{gcj}.
 
 @c man end

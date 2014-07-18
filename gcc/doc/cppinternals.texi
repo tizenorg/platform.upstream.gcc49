@@ -7,7 +7,7 @@
 @ifinfo
 @dircategory Software development
 @direntry
-* Cpplib: (cppinternals).      Cpplib internals.
+* @value{fncppint}: (@value{fncppint}).      Cpplib internals.
 @end direntry
 @end ifinfo
 

@@ -31,7 +31,7 @@ texts being (a) (see below), and with the Back-Cover Texts being (b)
 @ifinfo
 @dircategory GNU Libraries
 @direntry
-* libgomp: (libgomp).                    GNU OpenMP runtime library
+* @value{fnlibgomp}: (@value{fnlibgomp}).                    GNU OpenMP runtime library
 @end direntry
 
 This manual documents the GNU implementation of the OpenMP API for 
