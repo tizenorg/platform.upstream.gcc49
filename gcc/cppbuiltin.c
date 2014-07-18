@@ -37,9 +37,9 @@ parse_basever (int *major, int *minor, int *patchlevel)
   static int s_major = -1, s_minor, s_patchlevel;
 
   if (s_major == -1)
-    if (sscanf (BASEVER, "%d.%d.%d", &s_major, &s_minor, &s_patchlevel) != 3)
+    if (sscanf (version_string, "%d.%d.%d", &s_major, &s_minor, &s_patchlevel) != 3)
       {
-	sscanf (BASEVER, "%d.%d", &s_major, &s_minor);
+	sscanf (version_string, "%d.%d", &s_major, &s_minor);
 	s_patchlevel = 0;
       }
 
