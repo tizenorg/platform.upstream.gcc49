@@ -776,6 +776,10 @@ Wunused-local-typedefs
 C ObjC C++ ObjC++ Var(warn_unused_local_typedefs) Warning EnabledBy(Wunused)
 Warn when typedefs locally defined in a function are not used
 
+Wunprototyped-calls
+C Var(warn_unprototyped_calls) Warning LangEnabledBy(C,Wall)
+Warn about calls to unprototyped functions with at least one argument
+
 Wunused-macros
 C ObjC C++ ObjC++ Var(cpp_warn_unused_macros) Warning
 Warn about macros defined in the main file that are not used
