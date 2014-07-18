@@ -21,3 +21,9 @@ along with GCC; see the file COPYING3.  If not see
 
 #define GNU_USER_LINK_EMULATION "elf_i386"
 #define GLIBC_DYNAMIC_LINKER "/lib/ld-linux.so.2"
+
+/* This slows down Xen, so take a very small general performance hit
+   for not accessing the %fs segment with negative offsets by making
+   GCC not emit direct accesses to %fs at all.  */
+#undef TARGET_TLS_DIRECT_SEG_REFS_DEFAULT
+#define TARGET_TLS_DIRECT_SEG_REFS_DEFAULT 0
