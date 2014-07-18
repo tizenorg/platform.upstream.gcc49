@@ -2932,6 +2932,19 @@ build_function_call_vec (location_t loc, vec<location_t> arg_loc,
       && !check_builtin_function_arguments (fundecl, nargs, argarray))
     return error_mark_node;
 
+  /* If we cannot check function arguments because a prototype is
+     missing for the callee, warn here.  */
+  if (warn_unprototyped_calls
+      && nargs > 0 && !TYPE_ARG_TYPES (fntype)
+      && fundecl && !DECL_BUILT_IN (fundecl) && !C_DECL_IMPLICIT (fundecl)
+      && !DECL_ARGUMENTS (fundecl))
+    {
+      if (warning (OPT_Wunprototyped_calls,
+		   "call to function %qD without a real prototype", fundecl))
+	inform (DECL_SOURCE_LOCATION (fundecl), "%qD was declared here",
+		fundecl);
+    }
+
   /* Check that the arguments to the function are valid.  */
   check_function_arguments (fntype, nargs, argarray);
 
