@@ -122,10 +122,22 @@ java.tags: force
 	etags --include TAGS.sub --include ../TAGS.sub
 
 
-java.info: doc/gcj.info
+TEXI_GCJ_FILES = java/gcj.texi \
+		 $(gcc_docdir)/include/gpl_v3.texi $(gcc_docdir)/include/funding.texi \
+		 $(gcc_docdir)/include/fdl.texi $(gcc_docdir)/include/gcc-common.texi gcc-vers.texi
+INFO_GCJ_NAME = $(shell echo gcj|sed '$(program_transform_name)')
 
-java.srcinfo: doc/gcj.info
+java.info: doc/$(INFO_GCJ_NAME).info
+
+java.srcinfo: doc/$(INFO_GCJ_NAME).info
 	-cp -p $^ $(srcdir)/doc
+
+doc/$(INFO_GCJ_NAME).info: $(TEXI_GCJ_FILES)
+	if test "x$(BUILD_INFO)" = xinfo; then \
+	  rm -f $(@)*; \
+	  $(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFODEFS) \
+	    -I$(gcc_docdir)/include -I$(srcdir)/f -o$@ $<; \
+	fi
 
 java.dvi: doc/gcj.dvi
 
@@ -189,8 +201,9 @@ java.uninstall:
 	-rm -rf $(DESTDIR)$(man1dir)/gcj-dbtool$(man1ext)
 	-rm -rf $(DESTDIR)$(man1dir)/aot-compile$(man1ext)
 	-rm -rf $(DESTDIR)$(man1dir)/rebuild-gcj-db$(man1ext)
+	-rm -f $(DESTDIR)$(infodir)/$(INFO_GCJ_NAME).info*
 
-java.install-info: $(DESTDIR)$(infodir)/gcj.info
+java.install-info: $(DESTDIR)$(infodir)/$(INFO_GCJ_NAME).info
 
 java.install-pdf: $(JAVA_PDFFILES)
 	@$(NORMAL_INSTALL)

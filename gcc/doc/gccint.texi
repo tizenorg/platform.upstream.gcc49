@@ -49,7 +49,7 @@ Texts being (a) (see below), and with the Back-Cover Texts being (b)
 @ifnottex
 @dircategory Software development
 @direntry
-* gccint: (gccint).            Internals of the GNU Compiler Collection.
+* @value{fngccint}: (@value{fngccint}).            Internals of the GNU Compiler Collection.
 @end direntry
 This file documents the internals of the GNU compilers.
 @sp 1
@@ -81,7 +81,7 @@ write front ends for new languages.  It corresponds to the compilers
 @value{VERSION_PACKAGE}
 @end ifset
 version @value{version-GCC}.  The use of the GNU compilers is documented in a
-separate manual.  @xref{Top,, Introduction, gcc, Using the GNU
+separate manual.  @xref{Top,, Introduction, @value{fngcc}, Using the GNU
 Compiler Collection (GCC)}.
 
 This manual is mainly a reference manual rather than a tutorial.  It

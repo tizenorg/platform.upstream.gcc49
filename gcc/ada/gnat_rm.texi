@@ -36,7 +36,7 @@ included in the section entitled ``GNU Free Documentation License''.
 
 @dircategory GNU Ada tools
 @direntry
-* GNAT Reference Manual: (gnat_rm).  Reference Manual for GNU Ada tools.
+* GNAT Reference Manual: (gnat_rm-4.9).  Reference Manual for GNU Ada tools.
 @end direntry
 
 @titlepage

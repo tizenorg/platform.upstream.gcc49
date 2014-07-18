@@ -52,6 +52,8 @@ TEXINFO_TEX   = ../gcc/doc/include/texinfo.tex
 # Defines info, dvi, pdf and html targets
 MAKEINFOFLAGS = -I $(srcdir)/../gcc/doc/include
 info_TEXINFOS = doc/libffi.texi
+INFO_LIBFFI_NAME = $(shell echo libffi | sed '${program_transform_name}')
+INFO_DEPS = doc/$(INFO_LIBFFI_NAME).info
 
 # AM_CONDITIONAL on configure option --generated-files-in-srcdir
 if GENINSRC
@@ -69,18 +71,19 @@ endif
 
 all-local: $(STAMP_GENINSRC)
 
-stamp-geninsrc: doc/libffi.info
-	cp -p $(top_builddir)/doc/libffi.info $(srcdir)/doc/libffi.info
+$(srcdir)/doc/libffi.info: stamp-geninsrc
+stamp-geninsrc: doc/$(INFO_LIBFFI_NAME).info
+	cp -p $(top_builddir)/doc/$(INFO_LIBFFI_NAME).info $(srcdir)/doc/libffi.info
 	@touch $@
 
-doc/libffi.info: $(STAMP_BUILD_INFO)
+doc/$(INFO_LIBFFI_NAME).info: $(STAMP_BUILD_INFO)
 
 stamp-build-info: doc/libffi.texi $(srcdir)/doc/version.texi doc/$(am__dirstamp)
-	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -I $(srcdir)/doc -o doc/libffi.info $(srcdir)/doc/libffi.texi
+	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -D 'fnlibffi $(INFO_LIBFFI_NAME)' -I $(srcdir)/doc -o doc/$(INFO_LIBFFI_NAME).info $(srcdir)/doc/libffi.texi
 	@touch $@
 
 
-CLEANFILES = $(STAMP_GENINSRC) $(STAMP_BUILD_INFO) doc/libffi.info
+CLEANFILES = $(STAMP_GENINSRC) $(STAMP_BUILD_INFO) doc/$(INFO_LIBFFI_NAME).info
 MAINTAINERCLEANFILES = $(srcdir)/doc/libffi.info
 
 ## ################################################################

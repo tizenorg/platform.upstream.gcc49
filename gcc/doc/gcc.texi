@@ -63,9 +63,9 @@ Texts being (a) (see below), and with the Back-Cover Texts being (b)
 @ifnottex
 @dircategory Software development
 @direntry
-* gcc: (gcc).                  The GNU Compiler Collection.
-* g++: (gcc).                  The GNU C++ compiler.
-* gcov: (gcc) Gcov.            @command{gcov}---a test coverage program.
+* @value{fngcc}: (@value{fngcc}).                  The GNU Compiler Collection.
+* @value{fngxx}: (@value{fngxx}).                  The GNU C++ compiler.
+* gcov: (@value{fngcc}) Gcov.            @command{gcov}---a test coverage program.
 @end direntry
 This file documents the use of the GNU compilers.
 @sp 1
@@ -125,7 +125,7 @@ version @value{version-GCC}.
 The internals of the GNU compilers, including how to port them to new
 targets and some information about how to write front ends for new
 languages, are documented in a separate manual.  @xref{Top,,
-Introduction, gccint, GNU Compiler Collection (GCC) Internals}.
+Introduction, @value{fngccint}, GNU Compiler Collection (GCC) Internals}.
 
 @menu
 * G++ and GCC::     You can compile C or C++ programs.

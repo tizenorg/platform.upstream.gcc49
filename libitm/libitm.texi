@@ -20,7 +20,7 @@ Free Documentation License''.
 @ifinfo
 @dircategory GNU Libraries
 @direntry
-* libitm: (libitm).                    GNU Transactional Memory Library
+* libitm: (libitm-4.9).                    GNU Transactional Memory Library
 @end direntry
 
 This manual documents the GNU Transactional Memory Library.

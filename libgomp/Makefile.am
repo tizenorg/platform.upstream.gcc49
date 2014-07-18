@@ -111,16 +111,19 @@ endif
 
 all-local: $(STAMP_GENINSRC)
 
-stamp-geninsrc: libgomp.info
-	cp -p $(top_builddir)/libgomp.info $(srcdir)/libgomp.info
+INFO_LIBGOMP_NAME = $(shell echo libgomp|sed '$(program_transform_name)')
+stamp-geninsrc: $(INFO_LIBGOMP_NAME).info
+	cp -p $(top_builddir)/$(INFO_LIBGOMP_NAME).info $(srcdir)/libgomp.info
 	@touch $@
 
-libgomp.info: $(STAMP_BUILD_INFO)
+libgomp.info: $(INFO_LIBGOMP_NAME).info
+	cp $(INFO_LIBGOMP_NAME).info libgomp.info
+$(INFO_LIBGOMP_NAME).info: $(STAMP_BUILD_INFO)
 
 stamp-build-info: libgomp.texi
-	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -I $(srcdir) -o libgomp.info $(srcdir)/libgomp.texi
+	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -D 'fnlibgomp $(INFO_LIBGOMP_NAME)' -I $(srcdir) -o $(INFO_LIBGOMP_NAME).info $(srcdir)/libgomp.texi
 	@touch $@
 
 
-CLEANFILES = $(STAMP_GENINSRC) $(STAMP_BUILD_INFO) libgomp.info
+CLEANFILES = $(STAMP_GENINSRC) $(STAMP_BUILD_INFO) $(INFO_LIBGOMP_NAME).info
 MAINTAINERCLEANFILES = $(srcdir)/libgomp.info
