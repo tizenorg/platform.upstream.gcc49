@@ -76,6 +76,11 @@ do {						\
 #undef LINK_EH_SPEC
 #define LINK_EH_SPEC ""
 
+#ifdef TARGET_LIBC_PROVIDES_SSP
+/* IA-64 glibc provides __stack_chk_guard in [r13-8].  */
+#define TARGET_THREAD_SSP_OFFSET	-8
+#endif
+
 /* Put all *tf routines in libgcc.  */
 #undef LIBGCC2_HAS_TF_MODE
 #define LIBGCC2_HAS_TF_MODE 1
