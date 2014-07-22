@@ -613,7 +613,7 @@ fi
 # Avoid rebuilding of generated files
 contrib/gcc_update --touch
 # Avoid fucking up testsuite results with Java and indirect dispatch
-export LD_ASNEEDED=0
+export LD_AS_NEEDED=0
 # Split version file into version used for directories (X.Y) and
 # version to report with --version (X.Y.Z).
 # See also gcc-dir-version.patch.
