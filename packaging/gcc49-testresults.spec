@@ -639,7 +639,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 %if "%{TARGET_ARCH}" == "x86_64"
 	--with-arch-32=i586 \
 	--with-tune=generic \
-	--disable-multilib \
+	--enable-multilib \
 %endif
 %if "%{TARGET_ARCH}" == "s390"
         --with-tune=zEC12 --with-arch=z196 \
