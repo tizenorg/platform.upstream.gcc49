@@ -139,7 +139,7 @@ BuildRequires: gettext-devel
 BuildRequires: makeinfo
 # until here, but at least renaming and patching info files breaks this
 BuildRequires: gcc-c++
-BuildRequires: glibc-devel
+BuildRequires: glibc-devel-32bit
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
 BuildRequires: perl
