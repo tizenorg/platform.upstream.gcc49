@@ -650,8 +650,6 @@ export PATH="`pwd`/host-tools/bin:$PATH"
 GCJ_EXTRA_FLAGS="-marm"
 %endif
 
-export RPM_OPT_FLAGS="`echo $RPM_OPT_FLAGS | sed -e "s/ -Wp,-D_FORTIFY_SOURCE=2 / /g"`"
-
 CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" XCFLAGS="$RPM_OPT_FLAGS" \
 TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 ../configure \
