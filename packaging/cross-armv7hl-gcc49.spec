@@ -312,7 +312,6 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--mandir=%{_mandir} \
 	--libdir=%{_libdir} \
 	--libexecdir=%{_libdir} \
-    --disable-bootstrap \
 	--enable-languages=$languages \
 	$ENABLE_CHECKING \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
