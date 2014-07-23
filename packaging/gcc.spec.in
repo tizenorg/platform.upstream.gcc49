@@ -1146,7 +1146,6 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--mandir=%{_mandir} \
 	--libdir=%{_libdir} \
 	--libexecdir=%{_libdir} \
-    --disable-bootstrap \
 	--enable-languages=$languages \
 	$ENABLE_CHECKING \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
@@ -1296,11 +1295,11 @@ make all-target-libffi $PARALLEL
 %else
 STAGE1_FLAGS="-g"
 # Only run profiled bootstrap on archs where it works and matters
-#%ifarch x86_64 ppc64le s390x
-#make profiledbootstrap STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
-#%else
+%ifarch x86_64 ppc64le s390x
+make profiledbootstrap STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
+%else
 make STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
-#%endif
+%endif
 make info
 %if 0%{?building_libjava:1}
 make -C %{GCCDIST}/libstdc++-v3/doc doc-html-doxygen
