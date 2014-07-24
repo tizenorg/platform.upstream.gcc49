@@ -21,7 +21,7 @@
 
 %define build_ada 0
 
-%define quadmath_arch %ix86 x86_64 ia64 aarch64
+%define quadmath_arch %ix86 x86_64 ia64
 %define tsan_arch x86_64
 %define asan_arch x86_64 %ix86 ppc ppc64 %sparc %arm
 %define itm_arch x86_64 %ix86 %arm ppc ppc64 ppc64le s390 s390x %sparc
@@ -38,10 +38,10 @@
 %define build_libjava 0
 
 %define build_cp 1
-%define build_fortran !0%{?building_libjava:1}%{?building_libffi:1}
-%define build_objc !0%{?building_libjava:1}%{?building_libffi:1}
-%define build_objcp !0%{?building_libjava:1}%{?building_libffi:1}
-%define build_go !0%{?building_libjava:1}%{?building_libffi:1}
+%define build_fortran 0
+%define build_objc 0
+%define build_objcp 0
+%define build_go 0
 
 %if %{build_objcp}
 %define build_cp 1
@@ -239,11 +239,9 @@ Suggests: gcc49-info gcc49-locale
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 Source:		gcc-%{version}.tar.bz2
 Source1:	change_spec
-Source2:	libffi49-rpmlintrc
-Source3:	gcc49-rpmlintrc
-Source4:	ecj.jar
-Source5:	baselibs.conf
-Source6:	libgcj49-rpmlintrc
+Source2:	gcc49-rpmlintrc
+Source3:	ecj.jar
+Source4:	baselibs.conf
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
