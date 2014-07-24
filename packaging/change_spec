@@ -49,60 +49,6 @@ s/@variant@/-64bit/g
 p
 }
 }' >> $outfile
-	if test "$do_optional_compiler_languages" = "0"; then
-	echo '%define building_libjava 1' > libgcj$base_ver.spec
-	sed -e '/^# LIBJAVA-DELETE-BEGIN/,/^# LIBJAVA-DELETE-END/d;s/-n libgcj@base_ver@$//g;s/^Name:[[:space:]]*gcc/Name: libgcj/g' \
-	    gcc.spec.in \
-	| sed -e 's%@base_ver@%'$base_ver'%g' \
-	| sed -n -e '{
-/^# PACKAGE-BEGIN/h
-/^# PACKAGE-BEGIN/,/^# PACKAGE-END/H
-/^# PACKAGE-BEGIN/,/^# PACKAGE-END/!p
-/^# PACKAGE-END/{g
-s/@variant@//g
-p
-g
-s/@variant@/-32bit/g
-p
-g
-s/@variant@/-64bit/g
-p
-}
-}' >> libgcj$base_ver.spec
-	echo '%define building_testsuite 0' > gcc$base_ver-testresults.spec
-	echo '%define run_tests 0' >> gcc$base_ver-testresults.spec
-	sed -e '/^# GCC-TESTSUITE-DELETE-BEGIN/,/^# GCC-TESTSUITE-DELETE-END/d;s/-n gcc@base_ver@-testresults$//g;s/^Name:[[:space:]]*gcc@base_ver@/Name: gcc@base_ver@-testresults/g' \
-	    gcc.spec.in \
-	| sed -e 's%@base_ver@%'$base_ver'%g' \
->> gcc$base_ver-testresults.spec
-	echo '%define building_libffi 1' > libffi$base_ver.spec
-	sed -e '/^# LIBFFI-DELETE-BEGIN/,/^# LIBFFI-DELETE-END/d;s/^Name:[[:space:]]*gcc/Name: libffi/g' \
-	    gcc.spec.in \
-	| sed -e 's%@base_ver@%'$base_ver'%g' \
-	| sed -n -e '{
-/^# PACKAGE-BEGIN/h
-/^# PACKAGE-BEGIN/,/^# PACKAGE-END/H
-/^# PACKAGE-BEGIN/,/^# PACKAGE-END/!p
-/^# PACKAGE-END/{g
-s/@variant@//g
-p
-g
-s/@variant@/-32bit/g
-p
-g
-s/@variant@/-64bit/g
-p
-}
-}' \
->> libffi$base_ver.spec
-
-  test -f gcc$base_ver.changes \
-    && ( ln -f gcc$base_ver.changes libgcj$base_ver.changes; \
-	 ln -f gcc$base_ver.changes libffi$base_ver.changes; \
-	 ln -f gcc$base_ver.changes gcc$base_ver-testresults.changes; )
-    fi
-
-
 
 add_cross() {
   local pkgname="$1"; shift

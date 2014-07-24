@@ -92,11 +92,9 @@ Release:      1
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 Source:		gcc-%{version}.tar.bz2
 Source1:	change_spec
-Source2:	libffi49-rpmlintrc
-Source3:	gcc49-rpmlintrc
-Source4:	ecj.jar
-Source5:	baselibs.conf
-Source6:	libgcj49-rpmlintrc
+Source2:	gcc49-rpmlintrc
+Source3:	ecj.jar
+Source4:	baselibs.conf
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
