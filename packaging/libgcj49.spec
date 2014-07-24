@@ -1241,6 +1241,10 @@ mv $RPM_BUILD_ROOT%{_infodir}/gnat_ugn.info $RPM_BUILD_ROOT%{_infodir}/gnat_ugn%
 %endif
 %endif
 
+%ifnarch %quadmath_arch
+rm $RPM_BUILD_ROOT%{_infodir}/libquadmath%{binsuffix}.info.gz
+%endif
+
 
 
 %if %{build_java}
