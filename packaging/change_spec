@@ -109,6 +109,9 @@ add_cross() {
   local rpmtarget="$1"; shift
   local triplet="$1"; shift
 
+  # Prepare personal cross.spec.in
+  outfile=$pkgname.spec cross_arch=$triplet /bin/bash ./cross.spec.sh > cross.spec.in
+
   exclarch=`echo $rpmtarget | sed -e 's/ppc$/ppc64/'`
   echo "%define pkgname $pkgname" > $pkgname.spec
   echo "%define cross_arch $rpmtarget" >> $pkgname.spec
@@ -121,6 +124,7 @@ add_cross() {
 	-e "s/^\(ExclusiveArch.*\) $exclarch /\1 /" \
       >> $pkgname.spec
   test -f gcc$base_ver.changes && ln -f gcc$base_ver.changes $pkgname.changes
+  rm cross.spec.in
 }
 
 # We now support "proper" cross-compilers to suse targets via a
@@ -134,6 +138,11 @@ add_cross cross-aarch64-gcc$base_ver aarch64 aarch64-tizen-linux %define gcc_ice
 add_cross cross-armv7l-gcc$base_ver armv7l armv7l-tizen-linux-gnueabi %define gcc_icecream 1
 add_cross cross-armv7hl-gcc$base_ver armv7hl armv7hl-tizen-linux-gnueabi %define gcc_icecream 1
 add_cross cross-x86_64-gcc$base_ver x86_64 x86_64-tizen-linux %define gcc_icecream 1
+else
+add_cross cross-aarch64-gcc$base_ver aarch64 aarch64-tizen-linux
+add_cross cross-armv7l-gcc$base_ver armv7l armv7l-tizen-linux-gnueabi
+add_cross cross-armv7hl-gcc$base_ver armv7hl armv7hl-tizen-linux-gnueabi
+add_cross cross-x86_64-gcc$base_ver x86_64 x86_64-tizen-linux
 fi
 
 for f in *.spec; do
