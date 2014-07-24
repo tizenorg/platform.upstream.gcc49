@@ -138,7 +138,7 @@ BuildRequires: gettext-devel
 BuildRequires: makeinfo
 # until here, but at least renaming and patching info files breaks this
 BuildRequires: gcc-c++
-BuildRequires: glibc-devel
+BuildRequires: glibc-devel-32bit
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
 BuildRequires: perl
@@ -613,7 +613,7 @@ fi
 # Avoid rebuilding of generated files
 contrib/gcc_update --touch
 # Avoid fucking up testsuite results with Java and indirect dispatch
-export LD_ASNEEDED=0
+export LD_AS_NEEDED=0
 # Split version file into version used for directories (X.Y) and
 # version to report with --version (X.Y.Z).
 # See also gcc-dir-version.patch.
@@ -633,7 +633,7 @@ rm -rf obj-%{GCCDIST}
 mkdir obj-%{GCCDIST}
 cd obj-%{GCCDIST}
 RPM_OPT_FLAGS="$RPM_OPT_FLAGS -U_FORTIFY_SOURCE"
-RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/-fno-rtti//g' -e 's/-fno-exceptions//g' -e 's/-Wmissing-format-attribute//g' -e 's/-fstack-protector//g' -e 's/-ffortify=.//g' -e 's/-Wall//g' -e 's/-m32//g' -e 's/-m64//g'`
+RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/-fno-rtti//g' -e 's/-fno-exceptions//g' -e 's/-Wmissing-format-attribute//g' -e 's/-fstack-protector//g' -e 's/-ffortify=.//g' -e 's/-Wall//g' -e 's/-m32//g' -e 's/-m64//g' -e 's/-fexceptions//'`
 %ifarch %ix86
 # -mcpu is superceded by -mtune but -mtune is not supported by
 # our bootstrap compiler.  -mcpu gives a warning that stops
@@ -739,7 +739,6 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--mandir=%{_mandir} \
 	--libdir=%{_libdir} \
 	--libexecdir=%{_libdir} \
-    --disable-bootstrap \
 	--enable-languages=$languages \
 	$ENABLE_CHECKING \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
@@ -863,7 +862,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 %if "%{TARGET_ARCH}" == "x86_64"
 	--with-arch-32=i586 \
 	--with-tune=generic \
-	--disable-multilib \
+	--enable-multilib \
 %endif
 %if "%{TARGET_ARCH}" == "s390"
         --with-tune=zEC12 --with-arch=z196 \
@@ -888,11 +887,11 @@ make all-target-libffi $PARALLEL
 %else
 STAGE1_FLAGS="-g"
 # Only run profiled bootstrap on archs where it works and matters
-#%ifarch x86_64 ppc64le s390x
-#make profiledbootstrap STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
-#%else
+%ifarch x86_64 ppc64le s390x
+make profiledbootstrap STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
+%else
 make STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
-#%endif
+%endif
 make info
 %if 0%{?building_libjava:1}
 make -C %{GCCDIST}/libstdc++-v3/doc doc-html-doxygen
