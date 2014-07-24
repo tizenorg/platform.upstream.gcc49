@@ -145,7 +145,7 @@ fi
 # into it and execing the compiler
 libs=\`for bin in \$RPM_BUILD_ROOT/env/usr/bin/* \$RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do \
   ldd \$bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;\
-done | sort -u ``
+done | sort -u\`
 for lib in \$libs; do
   # Check wether the same library also exists in the parent directory,
   # and prefer that on the assumption that it is a more generic one.

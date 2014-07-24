@@ -2,18 +2,6 @@
 %define cross_arch aarch64
 %define gcc_target_arch aarch64-tizen-linux
 %define gcc_icecream 1
-#! /bin/sh
-
-#
-# call this via pre_checkin.sh
-#
-# 2005-05-09, jw@suse.de
-
-test -z "$cross_arch" && echo 1>&2 "Error: $0 needs environment variable 'cross_arch'"
-test -z "$outfile" && echo 1>&2 "Error: $0 needs environment variable 'outfile'"
-cross_arch_cpu=`echo $cross_arch | sed -e 's/\([^-]*\)-\?.*/\1/'`
-
-cat << EOF
 #
 # spec file for package gcc (Version 4.8.2)
 #
@@ -33,7 +21,7 @@ cat << EOF
 %define build_objc 0
 %define build_objcp 0
 %define build_go 0
-%define gcc_target_arch $cross_arch
+%define gcc_target_arch aarch64-tizen-linux
 
 %define binutils_target %{cross_arch}
 %if %{cross_arch} == "armv7l" || %{cross_arch} == "armv7hl"
@@ -43,9 +31,6 @@ cat << EOF
 %define binutils_target arm
 %endif
 %if %{cross_arch} == "armv5tel"
-%define binutils_target arm
-%endif
-%if %{cross_arch} == "aarch64"
 %define binutils_target arm
 %endif
 %define canonical_target %(echo %{binutils_target} | sed -e "s/i.86/i586/;s/ppc/powerpc/;s/sparc64.*/sparc64/;s/sparcv.*/sparc/;")
@@ -74,7 +59,6 @@ BuildRequires: zlib-devel
 BuildRequires: cloog-devel
 BuildRequires: ppl-devel
 %endif
-BuildRequires: cross-$cross_arch_cpu-binutils
 %ifarch ia64
 BuildRequires: libunwind-devel
 %endif
@@ -499,28 +483,21 @@ rm -rf $RPM_BUILD_ROOT%{_infodir}
 # Build an icecream environment
 # The assembler comes from the cross-binutils, and hence is _not_
 # named funnily, not even on ppc, so there we need the original target
-install -s -D %{_prefix}/bin/%{canonical_target}-tizen-linux%{?canonical_target_abi:%canonical_target_abi}-as \
-	$RPM_BUILD_ROOT/env/usr/bin/as
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} \
-	$RPM_BUILD_ROOT/env/usr/bin/g++
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} \
-	$RPM_BUILD_ROOT/env/usr/bin/gcc
+install -s -D %{_prefix}/bin/%{canonical_target}-tizen-linux%{?canonical_target_abi:%canonical_target_abi}-as 	$RPM_BUILD_ROOT/env/usr/bin/as
+install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/g++
+install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/gcc
 
-for back in cc1 cc1plus; do 
-	install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/$back \
-		$RPM_BUILD_ROOT/env%{targetlibsubdir}/$back
+for back in cc1 cc1plus; do
+	install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/$back 		$RPM_BUILD_ROOT/env%{targetlibsubdir}/$back
 done
 if test -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so; then
-  install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so \
-		$RPM_BUILD_ROOT/env%{targetlibsubdir}/liblto_plugin.so
+  install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so 		$RPM_BUILD_ROOT/env%{targetlibsubdir}/liblto_plugin.so
 fi
 
 # Make sure to also pull in all shared library requirements for the
 # binaries we put into the environment which is operated by chrooting
 # into it and execing the compiler
-libs=`for bin in $RPM_BUILD_ROOT/env/usr/bin/* $RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do \
-  ldd $bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;\
-done | sort -u `
+libs=`for bin in $RPM_BUILD_ROOT/env/usr/bin/* $RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do   ldd $bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;done | sort -u`
 for lib in $libs; do
   # Check wether the same library also exists in the parent directory,
   # and prefer that on the assumption that it is a more generic one.
@@ -549,4 +526,3 @@ rm -r env
 %defattr(-,root,root)
 /usr/share/icecream-envs
 
-EOF
