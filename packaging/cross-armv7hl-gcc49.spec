@@ -463,9 +463,10 @@ rm -rf $RPM_BUILD_ROOT/%{targetlibsubdir}/include-fixed
 rm -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.la
 # common fixup
 rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
+
 # remove docs
-rm -rf $RPM_BUILD_ROOT%{_mandir}
-rm -rf $RPM_BUILD_ROOT%{_infodir}
+%remove_docs
+rm -f $RPM_BUILD_ROOT/documentation.list
 
 
 # install and fixup target parts
