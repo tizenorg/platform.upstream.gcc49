@@ -83,8 +83,6 @@ make %{?jobs:-j%jobs}
 make %{?jobs:-j%jobs} all-host
 %endif
 
-%define _prefix /opt/cross
-
 %package -n cross-%cross_arch-gcc@base_ver@-icecream-backend
 Summary: Icecream backend for the GNU C Compiler
 Group:	Development/Languages/C and C++

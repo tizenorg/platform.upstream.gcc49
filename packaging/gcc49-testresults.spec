@@ -39,11 +39,13 @@
 %define build_java 0
 %define build_libjava 0
 
+# Also go and objc aren't needed right now
+%define build_objc 0
+%define build_objcp 0
+%define build_go 0
+
 %define build_cp 1
 %define build_fortran !0%{?building_libjava:1}%{?building_libffi:1}
-%define build_objc !0%{?building_libjava:1}%{?building_libffi:1}
-%define build_objcp !0%{?building_libjava:1}%{?building_libffi:1}
-%define build_go !0%{?building_libjava:1}%{?building_libffi:1}
 
 %if %{build_objcp}
 %define build_cp 1
