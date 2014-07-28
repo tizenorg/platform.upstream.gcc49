@@ -464,10 +464,9 @@ rm -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.la
 # common fixup
 rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
 
-# remove docs
+# remove docs and disable automated generation
 %remove_docs
-rm -f $RPM_BUILD_ROOT/documentation.list
-
+%define disable_docs_package 1
 
 # install and fixup target parts
 # ???  don't do this - debugedit is not prepared for this and crashes
