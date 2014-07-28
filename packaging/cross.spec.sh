@@ -154,7 +154,11 @@ for lib in \$libs; do
 done
 
 cd \$RPM_BUILD_ROOT/env
+%if 0%{?gcc_icecream:1}
+tar cvzf ../%{name}-icecream-backend_%{_arch}.tar.gz *
+%else
 tar cvzf ../%{name}_%{_arch}.tar.gz *
+%endif
 cd ..
 mkdir -p usr/share/icecream-envs
 mv %{name}_%{_arch}.tar.gz usr/share/icecream-envs
