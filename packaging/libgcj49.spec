@@ -22,7 +22,7 @@
 
 %define build_ada 0
 
-%define quadmath_arch %ix86 x86_64 ia64 aarch64
+%define quadmath_arch %ix86 x86_64 ia64
 %define tsan_arch x86_64
 %define asan_arch x86_64 %ix86 ppc ppc64 %sparc %arm
 %define itm_arch x86_64 %ix86 %arm ppc ppc64 ppc64le s390 s390x %sparc
@@ -1243,7 +1243,7 @@ mv $RPM_BUILD_ROOT%{_infodir}/gnat_ugn.info $RPM_BUILD_ROOT%{_infodir}/gnat_ugn%
 %endif
 
 %ifnarch %quadmath_arch
-rm -f $RPM_BUILD_ROOT%{_infodir}/libquadmath%{binsuffix}.info.gz
+rm -f $RPM_BUILD_ROOT%{_infodir}/libquadmath*.info.gz
 %endif
 
 
