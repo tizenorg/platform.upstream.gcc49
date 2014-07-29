@@ -300,6 +300,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
 	--enable-ssp \
 	--disable-libssp \
+	--disable-bootstrap \
 %if 0%{!?build_libvtv:1}
 	--disable-libvtv \
 %endif

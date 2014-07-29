@@ -1684,6 +1684,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
 	--enable-ssp \
 	--disable-libssp \
+	--disable-bootstrap \
 %if 0%{!?build_libvtv:1}
 	--disable-libvtv \
 %endif
@@ -1827,7 +1828,7 @@ make all-target-libffi $PARALLEL
 %else
 STAGE1_FLAGS="-g"
 # Only run profiled bootstrap on archs where it works and matters
-%ifarch x86_64 ppc64le s390x
+%ifarch ppc64le s390x
 make profiledbootstrap STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
 %else
 make STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
