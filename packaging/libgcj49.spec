@@ -236,7 +236,7 @@ Requires: libubsan%{libubsan_sover} >= %{version}-%{release}
 %ifarch %vtv_arch
 Requires: libvtv%{libvtv_sover} >= %{version}-%{release}
 %endif
-Suggests: gcc49-info gcc49-locale
+Requires: gcc49-info gcc49-locale
 %endif
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
@@ -251,7 +251,7 @@ Source6:	libgcj49-rpmlintrc
 Summary:      Java Runtime Library for gcc
 License:      GPL-2.0-with-classpath-exception
 Group:        Development/Building
-Recommends:   libgcj49-jar = %{version}-%{release}
+Requires:   libgcj49-jar = %{version}-%{release}
 Provides: libgcj%{libgcj_sover} = %{version}-%{release}
 Provides: libgij%{libgcj_sover} = %{version}-%{release}
 Provides: libgcj-tools%{libgcj_sover} = %{version}-%{release}

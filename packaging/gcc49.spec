@@ -235,7 +235,7 @@ Requires: libubsan%{libubsan_sover} >= %{version}-%{release}
 %ifarch %vtv_arch
 Requires: libvtv%{libvtv_sover} >= %{version}-%{release}
 %endif
-Suggests: gcc49-info gcc49-locale
+Requires: gcc49-info gcc49-locale
 %endif
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
@@ -492,7 +492,7 @@ option.
 Summary:      The standard C++ shared library
 License:        GPL-3.0-with-GCC-exception
 Group:          Development/Building
-Suggests:	libstdc++%{libstdcxx_sover}-locale
+Requires:	libstdc++%{libstdcxx_sover}-locale
 Provides:	libstdc++%{libstdcxx_sover} = %{version}-%{release}
 
 %description -n libstdc++%{libstdcxx_sover}%{libstdcxx_suffix}
@@ -506,7 +506,7 @@ The standard C++ library, needed for dynamically linked C++ programs.
 Summary:      The standard C++ shared library
 License:        GPL-3.0-with-GCC-exception
 Group:          Development/Building
-Suggests:	libstdc++%{libstdcxx_sover}-locale
+Requires:	libstdc++%{libstdcxx_sover}-locale
 Provides:	libstdc++%{libstdcxx_sover}-32bit = %{version}-%{release}
 
 %description -n libstdc++%{libstdcxx_sover}%{libstdcxx_suffix}-32bit
@@ -520,7 +520,7 @@ The standard C++ library, needed for dynamically linked C++ programs.
 Summary:      The standard C++ shared library
 License:        GPL-3.0-with-GCC-exception
 Group:          Development/Building
-Suggests:	libstdc++%{libstdcxx_sover}-locale
+Requires:	libstdc++%{libstdcxx_sover}-locale
 Provides:	libstdc++%{libstdcxx_sover}-64bit = %{version}-%{release}
 
 %description -n libstdc++%{libstdcxx_sover}%{libstdcxx_suffix}-64bit
@@ -1189,7 +1189,7 @@ The runtime library needed to run programs compiled with the
 Summary:      Java Runtime Library for gcc
 License:      GPL-2.0-with-classpath-exception
 Group:        Development/Building
-Recommends:   libgcj49-jar = %{version}-%{release}
+Requires:   libgcj49-jar = %{version}-%{release}
 Provides: libgcj%{libgcj_sover} = %{version}-%{release}
 Provides: libgij%{libgcj_sover} = %{version}-%{release}
 Provides: libgcj-tools%{libgcj_sover} = %{version}-%{release}

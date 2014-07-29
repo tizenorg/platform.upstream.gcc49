@@ -236,7 +236,7 @@ Requires: libubsan%{libubsan_sover} >= %{version}-%{release}
 %ifarch %vtv_arch
 Requires: libvtv%{libvtv_sover} >= %{version}-%{release}
 %endif
-Suggests: gcc49-info gcc49-locale
+Requires: gcc49-info gcc49-locale
 %endif
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build

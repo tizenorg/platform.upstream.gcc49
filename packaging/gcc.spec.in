@@ -237,7 +237,7 @@ Requires: libubsan%{libubsan_sover} >= %{version}-%{release}
 %ifarch %vtv_arch
 Requires: libvtv%{libvtv_sover} >= %{version}-%{release}
 %endif
-Suggests: gcc@base_ver@-info gcc@base_ver@-locale
+Requires: gcc@base_ver@-info gcc@base_ver@-locale
 %endif
 
 # COMMON-BEGIN
@@ -424,7 +424,7 @@ option.
 Summary:      The standard C++ shared library
 License:        GPL-3.0-with-GCC-exception
 Group:          Development/Building
-Suggests:	libstdc++%{libstdcxx_sover}-locale
+Requires:	libstdc++%{libstdcxx_sover}-locale
 Provides:	libstdc++%{libstdcxx_sover}@variant@ = %{version}-%{release}
 
 %description -n libstdc++%{libstdcxx_sover}%{libstdcxx_suffix}@variant@
@@ -729,7 +729,7 @@ The runtime library needed to run programs compiled with the
 Summary:      Java Runtime Library for gcc
 License:      GPL-2.0-with-classpath-exception
 Group:        Development/Building
-Recommends:   libgcj@base_ver@-jar = %{version}-%{release}
+Requires:   libgcj@base_ver@-jar = %{version}-%{release}
 Provides: libgcj%{libgcj_sover} = %{version}-%{release}
 Provides: libgij%{libgcj_sover} = %{version}-%{release}
 Provides: libgcj-tools%{libgcj_sover} = %{version}-%{release}
