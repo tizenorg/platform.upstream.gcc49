@@ -514,7 +514,11 @@ tar cvzf ../%{name}_%{_arch}.tar.gz *
 %endif
 cd ..
 mkdir -p usr/share/icecream-envs
+%if 0%{?gcc_icecream:1}
+mv %{name}-icecream-backend_%{_arch}.tar.gz usr/share/icecream-envs
+%else
 mv %{name}_%{_arch}.tar.gz usr/share/icecream-envs
+%endif
 rpm -q --changelog glibc >  usr/share/icecream-envs/%{name}_%{_arch}.glibc
 rpm -q --changelog binutils >  usr/share/icecream-envs/%{name}_%{_arch}.binutils
 rm -r env
