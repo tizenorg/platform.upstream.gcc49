@@ -28,7 +28,7 @@
 
 namespace GTM HIDDEN {
 
-static void
+void
 gtm_verror (const char *fmt, va_list list)
 {
   fputs ("\nlibitm: ", stderr);
