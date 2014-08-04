@@ -1,71 +1,204 @@
-%define pkgname cross-x86_64-gcc49
-%define cross_arch x86_64
-%define gcc_target_arch x86_64-tizen-linux
-%define gcc_icecream 1
+%define building_testsuite 0
+%define run_tests 0
 #
-# spec file for package gcc (Version 4.8.2)
+# spec file for package gcc49
 #
-# Copyright (c) 2005 SUSE Linux AG, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
+# Copyright (c) 2009 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
-# Please submit bugfixes or comments via http://www.suse.de/feedback/
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-%define build_cp 1
+# norootforbuild
+# icecream 0
+
+
 %define build_ada 0
-%define build_libjava 0
-%define build_java 0
 
-%define build_fortran 0
+%define quadmath_arch %ix86 x86_64 ia64
+%define tsan_arch x86_64
+%define asan_arch x86_64 %ix86 ppc ppc64 %sparc %arm
+%define itm_arch x86_64 %ix86 %arm ppc ppc64 ppc64le s390 s390x %sparc
+%define atomic_arch x86_64 %ix86 %arm aarch64 ppc ppc64 ppc64le s390 s390x %sparc m68k
+%define lsan_arch x86_64
+%define ubsan_arch x86_64 %ix86 ppc ppc64 %arm
+%if 0%{?build_libvtv:1}
+%define vtv_arch x86_64 %ix86
+%endif
+%define cilkrts_arch x86_64 %ix86
+
+# We don't want to build java
+%define build_java 0
+%define build_libjava 0
+
+# Also go and objc aren't needed right now
 %define build_objc 0
 %define build_objcp 0
 %define build_go 0
-%define gcc_target_arch x86_64-tizen-linux
 
-%define binutils_target %{cross_arch}
-%if %{cross_arch} == "armv7l" || %{cross_arch} == "armv7hl"
-%define binutils_target arm
-%endif
-%if %{cross_arch} == "armv6l" || %{cross_arch} == "armv6hl"
-%define binutils_target arm
-%endif
-%if %{cross_arch} == "armv5tel"
-%define binutils_target arm
-%endif
-%define canonical_target %(echo %{binutils_target} | sed -e "s/i.86/i586/;s/ppc/powerpc/;s/sparc64.*/sparc64/;s/sparcv.*/sparc/;")
-%if %{binutils_target} == "arm"
-%define canonical_target_abi -gnueabi
+%define build_cp 1
+%define build_fortran !0%{?building_libjava:1}%{?building_libffi:1}
+
+%if %{build_objcp}
+%define build_cp 1
+%define build_objc 1
 %endif
 
-%if 0%{?gcc_icecream:1}
-%define build_sysroot /
+%if %{build_libjava}
+%define build_cp 1
 %endif
 
+# For optional compilers only build C, C++ and Fortran
+%if 0%{?build_optional_compiler_languages:1}
+%define build_ada 0
+%define build_java 0
+%define build_libjava 0
+%define build_objc 0
+%define build_objcp 0
+%define build_go 0
+%endif
 
-Name:         %{pkgname}
-ExcludeArch:  %{cross_arch}
-BuildRequires: cross-%{binutils_target}-binutils
-BuildRequires: gcc-c++
+# Shared library SONAME versions
+%ifarch hppa
+%define libgcc_s 4
+%else
+%ifarch m68k
+%define libgcc_s 2
+%else
+%define libgcc_s 1
+%endif
+%endif
+%define libgcj_sover %{nil}
+%define libgcj_bc_sover %{nil}
+%define libffi_sover %{nil}
+%define libgomp_sover %{nil}
+%define libstdcxx_sover %{nil}
+%define libobjc_sover %{nil}
+%define libgfortran_sover %{nil}
+%define libquadmath_sover %{nil}
+%define libasan_sover %{nil}
+%define libtsan_sover %{nil}
+%define libatomic_sover %{nil}
+%define libitm_sover %{nil}
+%define libubsan_sover %{nil}
+%define liblsan_sover %{nil}
+%define libvtv_sover %{nil}
+%define libcilkrts_sover %{nil}
+%define libgo_sover %{nil}
+
+# Shared library package suffix
+# This is used for the "non-standard" set of libraries, the standard
+# being defined by %product_libs_gcc_ver, the GCC version that should
+# provide un-suffixed shared library packages following the shared-library
+# policy.  Even suffixed variants should provide the shared-library policy
+# mandated names and ensure they conflict with each other.
+# Note that on SONAME changes of any library the %product_libs_gcc_ver
+# define needs to be either split or the newest GCC version still providing
+# the old SONAME needs to unconditionally produce an un-suffixed library
+# if %product_libs_gcc_ver is newer than it.  Similar the _oldest_ GCC
+# version first providing a new SONAME needs to unconditionally produce
+# an un-suffixed library if %product_libs_gcc_ver is lower that it.
+%if %{!?product_libs_gcc_ver:49}%{?product_libs_gcc_ver} != 49
+%define pne 1
+%endif
+%define libgcc_s_suffix %{?pne:-gcc49}
+# libgcj SONAME changes with every GCC version
+%define libgcj_suffix %nil
+%define libgcj_bc_suffix %{?pne:-gcc49}
+%define libffi_suffix %{?pne:-gcc49}
+%define libgomp_suffix %{?pne:-gcc49}
+%define libstdcxx_suffix %{?pne:-gcc49}
+%define libobjc_suffix %{?pne:-gcc49}
+%define libgfortran_suffix %{?pne:-gcc49}
+%define libquadmath_suffix %{?pne:-gcc49}
+%define libasan_suffix %{?pne:-gcc49}
+%define libtsan_suffix %{?pne:-gcc49}
+%define libatomic_suffix %{?pne:-gcc49}
+%define libitm_suffix %{?pne:-gcc49}
+
+
+%define libubsan_suffix %{?pne:-gcc49}
+%define liblsan_suffix %{?pne:-gcc49}
+%define libvtv_suffix %{?pne:-gcc49}
+%define libcilkrts_suffix %{?pne:-gcc49}
+%define libgo_suffix %{?pne:-gcc49}
+
+%define selfconflict() %1
+
+Name: gcc49-testresults
+# With generated files in src we could drop the following
 BuildRequires: bison
 BuildRequires: flex
 BuildRequires: gettext-devel
+BuildRequires: makeinfo
+# until here, but at least renaming and patching info files breaks this
+BuildRequires: gcc-c++
 BuildRequires: glibc-devel-32bit
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
 BuildRequires: perl
-BuildRequires: makeinfo
 BuildRequires: zlib-devel
-%ifarch %ix86 x86_64 ppc ppc64 s390 s390x ia64 %sparc hppa %arm
-BuildRequires: cloog-devel
-BuildRequires: ppl-devel
+%ifarch %ix86 x86_64 ppc ppc64 s390 s390x ia64 %sparc hppa %arm aarch64
+BuildRequires: cloog-isl-devel
+BuildRequires: isl-devel
+%endif
+%if %{build_ada}
+%define hostsuffix -4.9
+BuildRequires: gcc49-ada
+%endif
+%if 0%{?building_libjava:1}%{?building_testsuite:1}
+BuildRequires: fastjar
+%endif
+%if 0%{?building_libffi:1}
+BuildRequires: pkg-config
 %endif
 %ifarch ia64
 BuildRequires: libunwind-devel
 %endif
-%if 0%{!?gcc_icecream:1}
-BuildRequires: cross-%cross_arch-glibc-devel
+%if 0%{?run_tests:1}
+BuildRequires: dejagnu
+BuildRequires: expect
+BuildRequires: gdb
 %endif
+
+%define separate_bi32 0
+%define separate_bi64 0
+%ifarch ppc sparcv9
+# Beware, this does _not_ separate libgcj, as for that one multilibing
+# is inactive for the time being
+%define separate_bi64 1
+%endif
+%ifarch x86_64 s390x ppc64 sparc64
+%define separate_bi32 1
+%endif
+
+# Define two macros to trigger -32bit or -64bit package variants
+%define separate_biarch 0
+%if %{separate_bi32}
+%define separate_biarch 1
+%define separate_biarch_suffix -32bit
+%endif
+%if %{separate_bi64}
+%define separate_biarch 1
+%define separate_biarch_suffix -64bit
+%endif
+
+%ifarch x86_64 ia64 s390x alpha ppc64 sparc64 aarch64
+# 64-bit is primary build target
+%define build_primary_64bit 1
+%else
+%define build_primary_64bit 0
+%endif
+
+%define biarch_libjava 0
 
 %define biarch_targets x86_64 s390x powerpc64 powerpc sparc sparc64
 
@@ -74,6 +207,39 @@ Version: 4.9.1
 Release:      1
 %define gcc_dir_version 4.9
 %define binsuffix -4.9
+
+%if !0%{?building_libjava:1}%{?building_libffi:1}%{?building_testsuite:1}
+Requires: binutils glibc-devel
+Requires: cpp49 = %{version}-%{release}
+Requires: libgcc_s%{libgcc_s} >= %{version}-%{release}
+Requires: libgomp%{libgomp_sover} >= %{version}-%{release}
+%ifarch %asan_arch
+Requires: libasan%{libasan_sover} >= %{version}-%{release}
+%endif
+%ifarch %tsan_arch
+Requires: libtsan%{libtsan_sover} >= %{version}-%{release}
+%endif
+%ifarch %atomic_arch
+Requires: libatomic%{libatomic_sover} >= %{version}-%{release}
+%endif
+%ifarch %itm_arch
+Requires: libitm%{libitm_sover} >= %{version}-%{release}
+%endif
+%ifarch %cilkrts_arch
+Requires: libcilkrts%{libcilkrts_sover} >= %{version}-%{release}
+%endif
+%ifarch %lsan_arch
+Requires: liblsan%{liblsan_sover} >= %{version}-%{release}
+%endif
+%ifarch %ubsan_arch
+Requires: libubsan%{libubsan_sover} >= %{version}-%{release}
+%endif
+%ifarch %vtv_arch
+Requires: libvtv%{libvtv_sover} >= %{version}-%{release}
+%endif
+Requires: gcc49-info gcc49-locale
+%endif
+
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 Source:		gcc-%{version}.tar.bz2
 Source1:	change_spec
@@ -83,17 +249,12 @@ Source4:	ecj.jar
 Source5:	baselibs.conf
 Source6:	libgcj49-rpmlintrc
 
-Group:          Development/Building
-Summary:	The GNU C Compiler and Support Files
-License:        GPL-3.0+
+Summary:      Testsuite results
+License:	SUSE-Public-Domain
+Group:        Development/Languages
 
 %description
-Core package for the GNU Compiler Collection, including the C language
-frontend.
-
-Language frontends other than C are split to different sub-packages,
-namely gcc-ada, gcc-c++, gcc-fortran, gcc-java, gcc-objc and
-gcc-obj-c++.
+Results from running the gcc and target library testsuites.
 
 
 
@@ -148,6 +309,65 @@ gcc-obj-c++.
 
 %define libsubdir %{_libdir}/gcc/%{GCCDIST}/%{gcc_dir_version}
 %define gxxinclude %{_prefix}/include/c++/%{gcc_dir_version}
+
+
+# Versionspecific directories
+%define versmainlibdir %{libsubdir}
+%define versmainlibdirbi32 %{libsubdir}/32
+%define versmainlibdirbi64 %{libsubdir}/64
+%ifarch ppc
+%define versmainlibdirbi32 %{libsubdir}
+%define versmainlibdirbi64 %{libsubdir}/64
+%endif
+%if %{build_primary_64bit}
+%define versmainlibdirbi %{versmainlibdirbi32}
+%else
+%define versmainlibdirbi %{versmainlibdirbi64}
+%endif
+
+%define mainlibdir %{_libdir}
+%define mainlibdirbi32 %{_prefix}/lib
+%define mainlibdirbi64 %{_prefix}/lib64
+%if %{build_primary_64bit}
+%define mainlibdirbi %{mainlibdirbi32}
+%else
+%define mainlibdirbi %{mainlibdirbi64}
+%endif
+
+
+# Now define a few macros that make it easy to package libs and
+# related files just to the right package, without caring for the
+# exact path the files are in.
+#   %mainlib  package X from all dirs that belong to the main package
+#   %biarchlib   package X from all dirs that belong to the -32/64bit package
+%define mainlib() %{mainlibdir}/%1\
+%{nil}
+%define biarchlib() %{nil}
+%if %{biarch}
+%if !%{separate_biarch}
+%define mainlib() %{mainlibdir}/%1\
+%{mainlibdirbi}/%1\
+%{nil}
+%else
+%define biarchlib() %{mainlibdirbi}/%1\
+%{nil}
+%endif
+%endif
+
+%define versmainlib() %{versmainlibdir}/%1\
+%{nil}
+%define versbiarchlib() %{nil}
+%if %{biarch}
+%if !%{separate_biarch}
+%define versmainlib() %{versmainlibdir}/%1\
+%{versmainlibdirbi}/%1\
+%{nil}
+%else
+%define versbiarchlib() %{versmainlibdirbi}/%1\
+%{nil}
+%endif
+%endif
+
 
 
 %prep
@@ -438,99 +658,50 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--host=%{GCCDIST}
 
 
-%if 0%{!?gcc_icecream:1}
-make %{?jobs:-j%jobs}
+%if 0%{?building_libffi:1}
+make stage1-bubble $PARALLEL
+make all-target-libffi $PARALLEL
 %else
-make %{?jobs:-j%jobs} all-host
+STAGE1_FLAGS="-g"
+# Only run profiled bootstrap on archs where it works and matters
+%ifarch ppc64le s390x
+make profiledbootstrap STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
+%else
+make STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
 %endif
-
-%package -n cross-%cross_arch-gcc49-icecream-backend
-Summary: Icecream backend for the GNU C Compiler
-Group:	Development/Languages/C and C++
-
-%description -n cross-%cross_arch-gcc49-icecream-backend
-This package contains the icecream environment for the GNU C Compiler
-
-
-%define targetlibsubdir %{_libdir}/gcc/%{gcc_target_arch}/%{gcc_dir_version}
+make info
+%if 0%{?building_libjava:1}
+make -C %{GCCDIST}/libstdc++-v3/doc doc-html-doxygen
+%endif
+%if 0%{?run_tests:1}
+echo "Run testsuite"
+(make -C %{GCCDIST}/libstdc++-v3 check-abi || true)
+mv %{GCCDIST}/libstdc++-v3/testsuite/libstdc++.log %{GCCDIST}/libstdc++-v3/testsuite/libstdc++-abi.log
+mv %{GCCDIST}/libstdc++-v3/testsuite/libstdc++.sum %{GCCDIST}/libstdc++-v3/testsuite/libstdc++-abi.sum
+# asan needs a whole shadow address space
+ulimit -v unlimited || true
+make -k check $PARALLEL || true
+mkdir ../testresults
+../contrib/test_summary | tee ../testresults/test_summary.txt
+%endif
+%endif
 
 %install
+export NO_BRP_CHECK_BYTECODE_VERSION=true
 cd obj-%{GCCDIST}
-
-# install and fixup host parts
-make DESTDIR=$RPM_BUILD_ROOT install-host
-# with the present setup fixincludes are for the build includes which
-# is wrong - get rid of them
-rm -rf $RPM_BUILD_ROOT/%{targetlibsubdir}/include-fixed
-rm -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.la
-# common fixup
-rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
-
-# remove docs and disable automated generation
-%remove_docs
-%define disable_docs_package 1
-
-# install and fixup target parts
-# ???  don't do this - debugedit is not prepared for this and crashes
-# so expect the sysroot to be populated from natively built binaries
-#%if 0%{?sysroot:1}
-#make DESTDIR=$RPM_BUILD_ROOT/%{sysroot} install-target
-#%else
-#make DESTDIR=$RPM_BUILD_ROOT/%{_prefix}/%{gcc_target_arch} install-target
-#%endif
-
-
-# Build an icecream environment
-# The assembler comes from the cross-binutils, and hence is _not_
-# named funnily, not even on ppc, so there we need the original target
-install -s -D %{_prefix}/bin/%{canonical_target}-tizen-linux%{?canonical_target_abi:%canonical_target_abi}-as 	$RPM_BUILD_ROOT/env/usr/bin/as
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/g++
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/gcc
-
-for back in cc1 cc1plus; do
-	install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/$back 		$RPM_BUILD_ROOT/env%{targetlibsubdir}/$back
-done
-if test -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so; then
-  install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so 		$RPM_BUILD_ROOT/env%{targetlibsubdir}/liblto_plugin.so
-fi
-
-# Make sure to also pull in all shared library requirements for the
-# binaries we put into the environment which is operated by chrooting
-# into it and execing the compiler
-libs=`for bin in $RPM_BUILD_ROOT/env/usr/bin/* $RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do   ldd $bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;done | sort -u`
-for lib in $libs; do
-  # Check wether the same library also exists in the parent directory,
-  # and prefer that on the assumption that it is a more generic one.
-  baselib=`echo "$lib" | sed 's,/[^/]*\(/[^/]*\)$,\1,'`
-  test -f "$baselib" && lib=$baselib
-  install -s -D $lib $RPM_BUILD_ROOT/env$lib
-done
-
-cd $RPM_BUILD_ROOT/env
-%if 0%{?gcc_icecream:1}
-tar cvzf ../%{name}-icecream-backend_%{_arch}.tar.gz *
-%else
-tar cvzf ../%{name}_%{_arch}.tar.gz *
+%if 0%{?run_tests:1}
+cp `find . -name "*.sum"` ../testresults/
+cp `find . -name "*.log"  \! -name "config.log" | grep -v 'acats.\?/tests' ` ../testresults/
+chmod 644 ../testresults/*
 %endif
-cd ..
-mkdir -p usr/share/icecream-envs
-%if 0%{?gcc_icecream:1}
-mv %{name}-icecream-backend_%{_arch}.tar.gz usr/share/icecream-envs
-%else
-mv %{name}_%{_arch}.tar.gz usr/share/icecream-envs
-%endif
-rpm -q --changelog glibc >  usr/share/icecream-envs/%{name}_%{_arch}.glibc
-rpm -q --changelog binutils >  usr/share/icecream-envs/%{name}_%{_arch}.binutils
-rm -r env
 
+%if 0%{?run_tests:1}
 %files
 %defattr(-,root,root)
-%{_prefix}/bin
-%dir %{targetlibsubdir}
-%dir %{_libdir}/gcc/%{gcc_target_arch}
-%{targetlibsubdir}
+%doc testresults/test_summary.txt
+%doc testresults/*.sum
+%doc testresults/*.log
+%endif
 
-%files -n cross-%cross_arch-gcc49-icecream-backend
-%defattr(-,root,root)
-/usr/share/icecream-envs
 
+%changelog
