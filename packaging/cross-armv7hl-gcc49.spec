@@ -2,18 +2,6 @@
 %define cross_arch armv7hl
 %define gcc_target_arch armv7hl-tizen-linux-gnueabi
 %define gcc_icecream 1
-#! /bin/sh
-
-#
-# call this via pre_checkin.sh
-#
-# 2005-05-09, jw@suse.de
-
-test -z "$cross_arch" && echo 1>&2 "Error: $0 needs environment variable 'cross_arch'"
-test -z "$outfile" && echo 1>&2 "Error: $0 needs environment variable 'outfile'"
-cross_arch_cpu=`echo $cross_arch | sed -e 's/\([^-]*\)-\?.*/\1/'`
-
-cat << EOF
 #
 # spec file for package gcc (Version 4.8.2)
 #
@@ -33,7 +21,7 @@ cat << EOF
 %define build_objc 0
 %define build_objcp 0
 %define build_go 0
-%define gcc_target_arch $cross_arch
+%define gcc_target_arch armv7hl-tizen-linux-gnueabi
 
 %define binutils_target %{cross_arch}
 %if %{cross_arch} == "armv7l" || %{cross_arch} == "armv7hl"
@@ -43,9 +31,6 @@ cat << EOF
 %define binutils_target arm
 %endif
 %if %{cross_arch} == "armv5tel"
-%define binutils_target arm
-%endif
-%if %{cross_arch} == "aarch64"
 %define binutils_target arm
 %endif
 %define canonical_target %(echo %{binutils_target} | sed -e "s/i.86/i586/;s/ppc/powerpc/;s/sparc64.*/sparc64/;s/sparcv.*/sparc/;")
@@ -59,6 +44,7 @@ cat << EOF
 
 
 Name:         %{pkgname}
+ExcludeArch:  %{cross_arch}
 BuildRequires: cross-%{binutils_target}-binutils
 BuildRequires: gcc-c++
 BuildRequires: bison
@@ -74,7 +60,6 @@ BuildRequires: zlib-devel
 BuildRequires: cloog-devel
 BuildRequires: ppl-devel
 %endif
-BuildRequires: cross-$cross_arch_cpu-binutils
 %ifarch ia64
 BuildRequires: libunwind-devel
 %endif
@@ -92,9 +77,11 @@ Release:      1
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 Source:		gcc-%{version}.tar.bz2
 Source1:	change_spec
-Source2:	gcc49-rpmlintrc
-Source3:	ecj.jar
-Source4:	baselibs.conf
+Source2:	libffi49-rpmlintrc
+Source3:	gcc49-rpmlintrc
+Source4:	ecj.jar
+Source5:	baselibs.conf
+Source6:	libgcj49-rpmlintrc
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
@@ -201,8 +188,8 @@ cat gcc/FULL-VER | cut -d '.' -f 1-2 > gcc/BASE-VER
 rm -rf obj-%{GCCDIST}
 mkdir obj-%{GCCDIST}
 cd obj-%{GCCDIST}
-RPM_OPT_FLAGS="$RPM_OPT_FLAGS -U_FORTIFY_SOURCE"
-RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/-fno-rtti//g' -e 's/-fno-exceptions//g' -e 's/-Wmissing-format-attribute//g' -e 's/-fstack-protector//g' -e 's/-ffortify=.//g' -e 's/-Wall//g' -e 's/-m32//g' -e 's/-m64//g' -e 's/-fexceptions//'`
+RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/-fno-rtti//g' -e 's/-fno-exceptions//g' -e 's/-Wmissing-format-attribute//g' -e 's/-fstack-protector//g' -e 's/-ffortify=.//g' -e 's/-Wall//g' -e 's/-m32//g' -e 's/-m64//g' -e 's/-fexceptions//' -e 's/\([[:space:]]\+.*-D_FORTIFY_SOURCE=\)[[:alnum:]]\+/\10/g'
+RPM_OPT_FLAGS="$RPM_OPT_FLAGS -D__USE_FORTIFY_LEVEL=0"`
 %ifarch %ix86
 # -mcpu is superceded by -mtune but -mtune is not supported by
 # our bootstrap compiler.  -mcpu gives a warning that stops
@@ -300,8 +287,6 @@ export PATH="`pwd`/host-tools/bin:$PATH"
 GCJ_EXTRA_FLAGS="-marm"
 %endif
 
-export RPM_OPT_FLAGS="`echo $RPM_OPT_FLAGS | sed -e "s/ -Wp,-D_FORTIFY_SOURCE=2 / /g"`"
-
 CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" XCFLAGS="$RPM_OPT_FLAGS" \
 TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 ../configure \
@@ -315,6 +300,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
 	--enable-ssp \
 	--disable-libssp \
+	--disable-bootstrap \
 %if 0%{!?build_libvtv:1}
 	--disable-libvtv \
 %endif
@@ -383,7 +369,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--with-abi=aapcs-linux \
 	--disable-sjlj-exceptions \
 %endif
-%if "%{TARGET_ARCH}" == "armv7l" 
+%if "%{TARGET_ARCH}" == "armv7l"
 	--with-arch=armv7-a \
 	--with-tune=cortex-a8 \
 	--with-float=softfp \
@@ -458,8 +444,6 @@ make %{?jobs:-j%jobs}
 make %{?jobs:-j%jobs} all-host
 %endif
 
-%define _prefix /opt/cross
-
 %package -n cross-%cross_arch-gcc49-icecream-backend
 Summary: Icecream backend for the GNU C Compiler
 Group:	Development/Languages/C and C++
@@ -481,10 +465,10 @@ rm -rf $RPM_BUILD_ROOT/%{targetlibsubdir}/include-fixed
 rm -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.la
 # common fixup
 rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
-# remove docs
-rm -rf $RPM_BUILD_ROOT%{_mandir}
-rm -rf $RPM_BUILD_ROOT%{_infodir}
 
+# remove docs and disable automated generation
+%remove_docs
+%define disable_docs_package 1
 
 # install and fixup target parts
 # ???  don't do this - debugedit is not prepared for this and crashes
@@ -499,28 +483,21 @@ rm -rf $RPM_BUILD_ROOT%{_infodir}
 # Build an icecream environment
 # The assembler comes from the cross-binutils, and hence is _not_
 # named funnily, not even on ppc, so there we need the original target
-install -s -D %{_prefix}/bin/%{canonical_target}-tizen-linux%{?canonical_target_abi:%canonical_target_abi}-as \
-	$RPM_BUILD_ROOT/env/usr/bin/as
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} \
-	$RPM_BUILD_ROOT/env/usr/bin/g++
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} \
-	$RPM_BUILD_ROOT/env/usr/bin/gcc
+install -s -D %{_prefix}/bin/%{canonical_target}-tizen-linux%{?canonical_target_abi:%canonical_target_abi}-as 	$RPM_BUILD_ROOT/env/usr/bin/as
+install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/g++
+install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/gcc
 
-for back in cc1 cc1plus; do 
-	install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/$back \
-		$RPM_BUILD_ROOT/env%{targetlibsubdir}/$back
+for back in cc1 cc1plus; do
+	install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/$back 		$RPM_BUILD_ROOT/env%{targetlibsubdir}/$back
 done
 if test -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so; then
-  install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so \
-		$RPM_BUILD_ROOT/env%{targetlibsubdir}/liblto_plugin.so
+  install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so 		$RPM_BUILD_ROOT/env%{targetlibsubdir}/liblto_plugin.so
 fi
 
 # Make sure to also pull in all shared library requirements for the
 # binaries we put into the environment which is operated by chrooting
 # into it and execing the compiler
-libs=`for bin in $RPM_BUILD_ROOT/env/usr/bin/* $RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do \
-  ldd $bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;\
-done | sort -u `
+libs=`for bin in $RPM_BUILD_ROOT/env/usr/bin/* $RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do   ldd $bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;done | sort -u`
 for lib in $libs; do
   # Check wether the same library also exists in the parent directory,
   # and prefer that on the assumption that it is a more generic one.
@@ -530,10 +507,18 @@ for lib in $libs; do
 done
 
 cd $RPM_BUILD_ROOT/env
+%if 0%{?gcc_icecream:1}
+tar cvzf ../%{name}-icecream-backend_%{_arch}.tar.gz *
+%else
 tar cvzf ../%{name}_%{_arch}.tar.gz *
+%endif
 cd ..
 mkdir -p usr/share/icecream-envs
+%if 0%{?gcc_icecream:1}
+mv %{name}-icecream-backend_%{_arch}.tar.gz usr/share/icecream-envs
+%else
 mv %{name}_%{_arch}.tar.gz usr/share/icecream-envs
+%endif
 rpm -q --changelog glibc >  usr/share/icecream-envs/%{name}_%{_arch}.glibc
 rpm -q --changelog binutils >  usr/share/icecream-envs/%{name}_%{_arch}.binutils
 rm -r env
@@ -549,4 +534,3 @@ rm -r env
 %defattr(-,root,root)
 /usr/share/icecream-envs
 
-EOF
