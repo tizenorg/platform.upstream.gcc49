@@ -4,7 +4,7 @@
 # Authors: Thorsten Kukuk <kukuk@suse.de>
 #
 # this script use the following variable(s):
-# 
+#
 # - $BUILD_BASENAME
 #
 
