@@ -41,9 +41,6 @@ cat << EOF
 %if %{cross_arch} == "armv5tel"
 %define binutils_target arm
 %endif
-%if %{cross_arch} == "aarch64"
-%define binutils_target arm
-%endif
 %define canonical_target %(echo %{binutils_target} | sed -e "s/i.86/i586/;s/ppc/powerpc/;s/sparc64.*/sparc64/;s/sparcv.*/sparc/;")
 %if %{binutils_target} == "arm"
 %define canonical_target_abi -gnueabi
@@ -55,6 +52,7 @@ cat << EOF
 
 
 Name:         %{pkgname}
+ExcludeArch:  %{cross_arch}
 BuildRequires: cross-%{binutils_target}-binutils
 BuildRequires: gcc-c++
 BuildRequires: bison
@@ -70,7 +68,6 @@ BuildRequires: zlib-devel
 BuildRequires: cloog-devel
 BuildRequires: ppl-devel
 %endif
-BuildRequires: cross-$cross_arch_cpu-binutils
 %ifarch ia64
 BuildRequires: libunwind-devel
 %endif
@@ -87,8 +84,6 @@ make %{?jobs:-j%jobs}
 make %{?jobs:-j%jobs} all-host
 %endif
 
-%define _prefix /opt/cross
-
 %package -n cross-%cross_arch-gcc@base_ver@-icecream-backend
 Summary: Icecream backend for the GNU C Compiler
 Group:	Development/Languages/C and C++
@@ -103,25 +98,25 @@ This package contains the icecream environment for the GNU C Compiler
 cd obj-%{GCCDIST}
 
 # install and fixup host parts
-make DESTDIR=$RPM_BUILD_ROOT install-host
+make DESTDIR=\$RPM_BUILD_ROOT install-host
 # with the present setup fixincludes are for the build includes which
 # is wrong - get rid of them
-rm -rf $RPM_BUILD_ROOT/%{targetlibsubdir}/include-fixed
-rm -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.la
+rm -rf \$RPM_BUILD_ROOT/%{targetlibsubdir}/include-fixed
+rm -f \$RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.la
 # common fixup
-rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
-# remove docs
-rm -rf $RPM_BUILD_ROOT%{_mandir}
-rm -rf $RPM_BUILD_ROOT%{_infodir}
+rm -f \$RPM_BUILD_ROOT%{_libdir}/libiberty.a
 
+# remove docs and disable automated generation
+%remove_docs
+%define disable_docs_package 1
 
 # install and fixup target parts
 # ???  don't do this - debugedit is not prepared for this and crashes
 # so expect the sysroot to be populated from natively built binaries
 #%if 0%{?sysroot:1}
-#make DESTDIR=$RPM_BUILD_ROOT/%{sysroot} install-target
+#make DESTDIR=\$RPM_BUILD_ROOT/%{sysroot} install-target
 #%else
-#make DESTDIR=$RPM_BUILD_ROOT/%{_prefix}/%{gcc_target_arch} install-target
+#make DESTDIR=\$RPM_BUILD_ROOT/%{_prefix}/%{gcc_target_arch} install-target
 #%endif
 
 
@@ -129,40 +124,48 @@ rm -rf $RPM_BUILD_ROOT%{_infodir}
 # The assembler comes from the cross-binutils, and hence is _not_
 # named funnily, not even on ppc, so there we need the original target
 install -s -D %{_prefix}/bin/%{canonical_target}-tizen-linux%{?canonical_target_abi:%canonical_target_abi}-as \
-	$RPM_BUILD_ROOT/env/usr/bin/as
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} \
-	$RPM_BUILD_ROOT/env/usr/bin/g++
-install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} \
-	$RPM_BUILD_ROOT/env/usr/bin/gcc
+	\$RPM_BUILD_ROOT/env/usr/bin/as
+install -s \$RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} \
+	\$RPM_BUILD_ROOT/env/usr/bin/g++
+install -s \$RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} \
+	\$RPM_BUILD_ROOT/env/usr/bin/gcc
 
-for back in cc1 cc1plus; do 
-	install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/$back \
-		$RPM_BUILD_ROOT/env%{targetlibsubdir}/$back
+for back in cc1 cc1plus; do
+	install -s -D \$RPM_BUILD_ROOT/%{targetlibsubdir}/\$back \
+		\$RPM_BUILD_ROOT/env%{targetlibsubdir}/\$back
 done
-if test -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so; then
-  install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so \
-		$RPM_BUILD_ROOT/env%{targetlibsubdir}/liblto_plugin.so
+if test -f \$RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so; then
+  install -s -D \$RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so \
+		\$RPM_BUILD_ROOT/env%{targetlibsubdir}/liblto_plugin.so
 fi
 
 # Make sure to also pull in all shared library requirements for the
 # binaries we put into the environment which is operated by chrooting
 # into it and execing the compiler
-libs=`for bin in $RPM_BUILD_ROOT/env/usr/bin/* $RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do \
-  ldd $bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;\
-done | sort -u `
-for lib in $libs; do
+libs=\`for bin in \$RPM_BUILD_ROOT/env/usr/bin/* \$RPM_BUILD_ROOT/env%{targetlibsubdir}/*; do \
+  ldd \$bin | sed -n '\,^[^/]*\(/[^ ]*\).*,{ s//\1/; p; }'  ;\
+done | sort -u\`
+for lib in \$libs; do
   # Check wether the same library also exists in the parent directory,
   # and prefer that on the assumption that it is a more generic one.
-  baselib=`echo "$lib" | sed 's,/[^/]*\(/[^/]*\)$,\1,'`
-  test -f "$baselib" && lib=$baselib
-  install -s -D $lib $RPM_BUILD_ROOT/env$lib
+  baselib=\`echo "\$lib" | sed 's,/[^/]*\(/[^/]*\)\$,\1,'\`
+  test -f "\$baselib" && lib=\$baselib
+  install -s -D \$lib \$RPM_BUILD_ROOT/env\$lib
 done
 
-cd $RPM_BUILD_ROOT/env
+cd \$RPM_BUILD_ROOT/env
+%if 0%{?gcc_icecream:1}
+tar cvzf ../%{name}-icecream-backend_%{_arch}.tar.gz *
+%else
 tar cvzf ../%{name}_%{_arch}.tar.gz *
+%endif
 cd ..
 mkdir -p usr/share/icecream-envs
+%if 0%{?gcc_icecream:1}
+mv %{name}-icecream-backend_%{_arch}.tar.gz usr/share/icecream-envs
+%else
 mv %{name}_%{_arch}.tar.gz usr/share/icecream-envs
+%endif
 rpm -q --changelog glibc >  usr/share/icecream-envs/%{name}_%{_arch}.glibc
 rpm -q --changelog binutils >  usr/share/icecream-envs/%{name}_%{_arch}.binutils
 rm -r env
