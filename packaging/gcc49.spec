@@ -37,11 +37,13 @@
 %define build_java 0
 %define build_libjava 0
 
-%define build_cp 1
-%define build_fortran 0
+# Also go and objc aren't needed right now
 %define build_objc 0
 %define build_objcp 0
 %define build_go 0
+
+%define build_cp 1
+%define build_fortran !0%{?building_libjava:1}%{?building_libffi:1}
 
 %if %{build_objcp}
 %define build_cp 1
@@ -233,15 +235,17 @@ Requires: libubsan%{libubsan_sover} >= %{version}-%{release}
 %ifarch %vtv_arch
 Requires: libvtv%{libvtv_sover} >= %{version}-%{release}
 %endif
-Suggests: gcc49-info gcc49-locale
+Requires: gcc49-info gcc49-locale
 %endif
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 Source:		gcc-%{version}.tar.bz2
 Source1:	change_spec
-Source2:	gcc49-rpmlintrc
-Source3:	ecj.jar
-Source4:	baselibs.conf
+Source2:	libffi49-rpmlintrc
+Source3:	gcc49-rpmlintrc
+Source4:	ecj.jar
+Source5:	baselibs.conf
+Source6:	libgcj49-rpmlintrc
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
@@ -488,7 +492,7 @@ option.
 Summary:      The standard C++ shared library
 License:        GPL-3.0-with-GCC-exception
 Group:          Development/Building
-Suggests:	libstdc++%{libstdcxx_sover}-locale
+Requires:	libstdc++%{libstdcxx_sover}-locale
 Provides:	libstdc++%{libstdcxx_sover} = %{version}-%{release}
 
 %description -n libstdc++%{libstdcxx_sover}%{libstdcxx_suffix}
@@ -502,7 +506,7 @@ The standard C++ library, needed for dynamically linked C++ programs.
 Summary:      The standard C++ shared library
 License:        GPL-3.0-with-GCC-exception
 Group:          Development/Building
-Suggests:	libstdc++%{libstdcxx_sover}-locale
+Requires:	libstdc++%{libstdcxx_sover}-locale
 Provides:	libstdc++%{libstdcxx_sover}-32bit = %{version}-%{release}
 
 %description -n libstdc++%{libstdcxx_sover}%{libstdcxx_suffix}-32bit
@@ -516,7 +520,7 @@ The standard C++ library, needed for dynamically linked C++ programs.
 Summary:      The standard C++ shared library
 License:        GPL-3.0-with-GCC-exception
 Group:          Development/Building
-Suggests:	libstdc++%{libstdcxx_sover}-locale
+Requires:	libstdc++%{libstdcxx_sover}-locale
 Provides:	libstdc++%{libstdcxx_sover}-64bit = %{version}-%{release}
 
 %description -n libstdc++%{libstdcxx_sover}%{libstdcxx_suffix}-64bit
@@ -1185,7 +1189,7 @@ The runtime library needed to run programs compiled with the
 Summary:      Java Runtime Library for gcc
 License:      GPL-2.0-with-classpath-exception
 Group:        Development/Building
-Recommends:   libgcj49-jar = %{version}-%{release}
+Requires:   libgcj49-jar = %{version}-%{release}
 Provides: libgcj%{libgcj_sover} = %{version}-%{release}
 Provides: libgij%{libgcj_sover} = %{version}-%{release}
 Provides: libgcj-tools%{libgcj_sover} = %{version}-%{release}
@@ -1341,7 +1345,7 @@ A foreign function interface is the popular name for the interface that allows c
 
 %package go
 Summary:      GNU Go Compiler
-License:        GPL-3.0+ 
+License:        GPL-3.0+
 Group:        Development/Languages
 Requires: gcc49 = %{version}-%{release}
 Requires: libgo%{libgo_sover} >= %{version}-%{release}
@@ -1351,7 +1355,7 @@ This package contains a Go compiler and associated development
 files based on the GNU GCC technology.
 %package go-32bit
 Summary:      GNU Go Compiler
-License:        GPL-3.0+ 
+License:        GPL-3.0+
 Group:        Development/Languages
 Requires: gcc49-32bit = %{version}-%{release}
 Requires: libgo%{libgo_sover}-32bit >= %{version}-%{release}
@@ -1361,7 +1365,7 @@ This package contains a Go compiler and associated development
 files based on the GNU GCC technology.
 %package go-64bit
 Summary:      GNU Go Compiler
-License:        GPL-3.0+ 
+License:        GPL-3.0+
 Group:        Development/Languages
 Requires: gcc49-64bit = %{version}-%{release}
 Requires: libgo%{libgo_sover}-64bit >= %{version}-%{release}
@@ -1568,8 +1572,8 @@ cat gcc/FULL-VER | cut -d '.' -f 1-2 > gcc/BASE-VER
 rm -rf obj-%{GCCDIST}
 mkdir obj-%{GCCDIST}
 cd obj-%{GCCDIST}
-RPM_OPT_FLAGS="$RPM_OPT_FLAGS -U_FORTIFY_SOURCE"
-RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/-fno-rtti//g' -e 's/-fno-exceptions//g' -e 's/-Wmissing-format-attribute//g' -e 's/-fstack-protector//g' -e 's/-ffortify=.//g' -e 's/-Wall//g' -e 's/-m32//g' -e 's/-m64//g' -e 's/-fexceptions//'`
+RPM_OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/-fno-rtti//g' -e 's/-fno-exceptions//g' -e 's/-Wmissing-format-attribute//g' -e 's/-fstack-protector//g' -e 's/-ffortify=.//g' -e 's/-Wall//g' -e 's/-m32//g' -e 's/-m64//g' -e 's/-fexceptions//' -e 's/\([[:space:]]\+.*-D_FORTIFY_SOURCE=\)[[:alnum:]]\+/\10/g'
+RPM_OPT_FLAGS="$RPM_OPT_FLAGS -D__USE_FORTIFY_LEVEL=0"`
 %ifarch %ix86
 # -mcpu is superceded by -mtune but -mtune is not supported by
 # our bootstrap compiler.  -mcpu gives a warning that stops
@@ -1667,8 +1671,6 @@ export PATH="`pwd`/host-tools/bin:$PATH"
 GCJ_EXTRA_FLAGS="-marm"
 %endif
 
-export RPM_OPT_FLAGS="`echo $RPM_OPT_FLAGS | sed -e "s/ -Wp,-D_FORTIFY_SOURCE=2 / /g"`"
-
 CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" XCFLAGS="$RPM_OPT_FLAGS" \
 TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 ../configure \
@@ -1682,6 +1684,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
 	--enable-ssp \
 	--disable-libssp \
+	--disable-bootstrap \
 %if 0%{!?build_libvtv:1}
 	--disable-libvtv \
 %endif
@@ -1750,7 +1753,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--with-abi=aapcs-linux \
 	--disable-sjlj-exceptions \
 %endif
-%if "%{TARGET_ARCH}" == "armv7l" 
+%if "%{TARGET_ARCH}" == "armv7l"
 	--with-arch=armv7-a \
 	--with-tune=cortex-a8 \
 	--with-float=softfp \
@@ -1825,7 +1828,7 @@ make all-target-libffi $PARALLEL
 %else
 STAGE1_FLAGS="-g"
 # Only run profiled bootstrap on archs where it works and matters
-%ifarch x86_64 ppc64le s390x
+%ifarch ppc64le s390x
 make profiledbootstrap STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
 %else
 make STAGE1_CFLAGS="$STAGE1_FLAGS" BOOT_CFLAGS="$RPM_OPT_FLAGS" $PARALLEL
@@ -1943,7 +1946,7 @@ for i in `find %{GCCDIST}/[36]*/libstdc++-v3/include -name c++config.h 2>/dev/nu
       echo "Urgs?"
       exit 1
     fi
-    
+
     cat > $RPM_BUILD_ROOT%{_prefix}/include/c++/%{gcc_dir_version}/%{GCCDIST}/bits/c++config.h <<EOF
 #ifndef _CPP_CPPCONFIG_WRAPPER
 #define _CPP_CPPCONFIG_WRAPPER 1
@@ -2148,7 +2151,7 @@ for l in `find $RPM_BUILD_ROOT -name '*.la'`; do
   mv $l.new $l
 done
 
-%if 0%{?run_tests:1} 
+%if 0%{?run_tests:1}
 cp `find . -name "*.sum"` ../testresults/
 cp `find . -name "*.log"  \! -name "config.log" | grep -v 'acats.\?/tests' ` ../testresults/
 chmod 644 ../testresults/*
@@ -2252,7 +2255,7 @@ mv $RPM_BUILD_ROOT%{_infodir}/libgomp.info $RPM_BUILD_ROOT%{_infodir}/libgomp%{b
 %ifarch %itm_arch
 mv $RPM_BUILD_ROOT%{_infodir}/libitm.info $RPM_BUILD_ROOT%{_infodir}/libitm%{binsuffix}.info
 %endif
-%if %{build_fortran} 
+%if %{build_fortran}
 %ifarch %quadmath_arch
 mv $RPM_BUILD_ROOT%{_infodir}/libquadmath.info $RPM_BUILD_ROOT%{_infodir}/libquadmath%{binsuffix}.info
 %endif
@@ -2262,6 +2265,10 @@ mv $RPM_BUILD_ROOT%{_infodir}/gnat-style.info $RPM_BUILD_ROOT%{_infodir}/gnat-st
 mv $RPM_BUILD_ROOT%{_infodir}/gnat_rm.info $RPM_BUILD_ROOT%{_infodir}/gnat_rm%{binsuffix}.info
 mv $RPM_BUILD_ROOT%{_infodir}/gnat_ugn.info $RPM_BUILD_ROOT%{_infodir}/gnat_ugn%{binsuffix}.info
 %endif
+%endif
+
+%ifnarch %quadmath_arch
+rm -vf $RPM_BUILD_ROOT%{_infodir}/libquadmath*.info*
 %endif
 
 cd ..
@@ -2277,7 +2284,7 @@ cat cpplib%{binsuffix}.lang gcc%{binsuffix}.lang > gcc49-locale.lang
 %install_info --info-dir=%{_infodir} %{_infodir}/gccint%{binsuffix}.info.gz
 %install_info --info-dir=%{_infodir} %{_infodir}/gccinstall%{binsuffix}.info.gz
 %install_info --info-dir=%{_infodir} %{_infodir}/libgomp%{binsuffix}.info.gz
-%if %{build_fortran} 
+%if %{build_fortran}
 %install_info --info-dir=%{_infodir} %{_infodir}/gfortran%{binsuffix}.info.gz
 %ifarch %quadmath_arch
 %install_info --info-dir=%{_infodir} %{_infodir}/libquadmath%{binsuffix}.info.gz
