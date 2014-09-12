@@ -525,7 +525,7 @@ rm -r env
 
 %files
 %defattr(-,root,root)
-%{_prefix}/bin
+%{_prefix}/bin/*
 %dir %{targetlibsubdir}
 %dir %{_libdir}/gcc/%{gcc_target_arch}
 %{targetlibsubdir}
