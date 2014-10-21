@@ -668,7 +668,10 @@ tree_profiling (void)
 static bool
 gate_tree_profile_ipa (void)
 {
-  return (!in_lto_p
+  /* When profile instrumentation, use or test coverage shall be performed.
+     But for AutoFDO, this there is no instrumentation, thus this pass is
+     diabled.  */
+  return (!in_lto_p && !flag_auto_profile
 	  && (flag_branch_probabilities || flag_test_coverage
 	      || profile_arc_flag));
 }

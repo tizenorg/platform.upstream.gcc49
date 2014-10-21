@@ -137,7 +137,7 @@ static bool gimple_ic_transform (gimple_stmt_iterator *);
 
 /* Allocate histogram value.  */
 
-static histogram_value
+histogram_value
 gimple_alloc_histogram_value (struct function *fun ATTRIBUTE_UNUSED,
 			      enum hist_type type, gimple stmt, tree value)
 {
@@ -1292,7 +1292,7 @@ find_func_by_profile_id (int profile_id)
    may ICE. Here we only do very minimal sanity check just to make compiler happy.
    Returns true if TARGET is considered ok for call CALL_STMT.  */
 
-static bool
+bool
 check_ic_target (gimple call_stmt, struct cgraph_node *target)
 {
    location_t locus;

@@ -121,6 +121,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "ipa-inline.h"
 #include "ipa-utils.h"
 #include "sreal.h"
+#include "auto-profile.h"
 #include "cilk.h"
 
 /* Statistics we collect about inlining algorithm.  */
@@ -448,6 +449,14 @@ want_early_inline_function_p (struct cgraph_edge *e)
   struct cgraph_node *callee = cgraph_function_or_thunk_node (e->callee, NULL);
 
   if (DECL_DISREGARD_INLINE_LIMITS (callee->decl))
+    ;
+  /* For AutoFDO, we need to make sure that before profile annotation, all
+     hot paths' IR look exactly the same as profiled binary. As a result,
+     in einliner, we will disregard size limit and inline those callsites
+     that are:
+       * inlined in the profiled binary, and
+       * the cloned callee has enough samples to be considered "hot".  */
+  else if (flag_auto_profile && afdo_callsite_hot_enough_for_early_inline (e))
     ;
   else if (!DECL_DECLARED_INLINE_P (callee->decl)
 	   && !flag_inline_small_functions)
@@ -2236,7 +2245,7 @@ early_inline_small_functions (struct cgraph_node *node)
 /* Do inlining of small functions.  Doing so early helps profiling and other
    passes to be somewhat more effective and avoids some code duplication in
    later real inlining pass for testcases with very many function calls.  */
-static unsigned int
+unsigned int
 early_inliner (void)
 {
   struct cgraph_node *node = cgraph_get_node (current_function_decl);
