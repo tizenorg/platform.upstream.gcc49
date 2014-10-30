@@ -202,7 +202,7 @@ BuildRequires: gdb
 %define biarch_targets x86_64 s390x powerpc64 powerpc sparc sparc64
 
 URL:          http://gcc.gnu.org/
-Version: 4.9.1
+Version: 4.9.2
 Release:      1
 %define gcc_dir_version 4.9
 %define binsuffix -4.9
@@ -1842,6 +1842,9 @@ cat cpplib%{binsuffix}.lang gcc%{binsuffix}.lang > gcc@base_ver@-locale.lang
 %{libsubdir}/include/stdnoreturn.h
 %{libsubdir}/include/stdalign.h
 %{libsubdir}/include/stdatomic.h
+%ifarch %asan_arch %ubsan_arch %tsan_arch %lsan_arch
+%{libsubdir}/include/sanitizer/*.h
+%endif
 %ifarch %sparc
 %{libsubdir}/include/visintrin.h
 %endif
