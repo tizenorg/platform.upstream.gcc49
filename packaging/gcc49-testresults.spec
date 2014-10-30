@@ -203,7 +203,7 @@ BuildRequires: gdb
 %define biarch_targets x86_64 s390x powerpc64 powerpc sparc sparc64
 
 URL:          http://gcc.gnu.org/
-Version: 4.9.1
+Version: 4.9.2
 Release:      1
 %define gcc_dir_version 4.9
 %define binsuffix -4.9
