@@ -52,7 +52,7 @@ cat << EOF
 
 
 Name:         %{pkgname}
-ExcludeArch:  %{cross_arch}
+ExclusiveArch: %{ix86} x86_64
 BuildRequires: cross-%{binutils_target}-binutils
 BuildRequires: gcc-c++
 BuildRequires: bison
