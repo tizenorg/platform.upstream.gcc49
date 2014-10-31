@@ -26,7 +26,7 @@
 %define quadmath_arch %ix86 x86_64 ia64
 %define tsan_arch x86_64
 %define asan_arch x86_64 %ix86 ppc ppc64 %sparc %arm
-%define itm_arch x86_64 %ix86 %arm ppc ppc64 ppc64le s390 s390x %sparc
+%define itm_arch x86_64 %ix86 %arm ppc ppc64 ppc64le s390 s390x %sparc aarch64
 %define atomic_arch x86_64 %ix86 %arm aarch64 ppc ppc64 ppc64le s390 s390x %sparc m68k
 %define lsan_arch x86_64
 %define ubsan_arch x86_64 %ix86 ppc ppc64 %arm
