@@ -1,3 +1,8 @@
+2014-11-14  Bin Cheng  <bin.cheng@arm.com>
+
+	* gcc.target/arm/ldrd-strd-pair-1.c: New test.
+	* gcc.target/arm/vfp-1.c: Improve scanning string.
+
 2015-05-05  Shanyao chen  <chenshanyao@huawei.com>
 
 	Backported from mainline
