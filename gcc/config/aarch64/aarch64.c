@@ -264,6 +264,9 @@ static const struct cpu_vector_cost cortexa57_vector_cost =
   NAMED_PARAM (cond_not_taken_branch_cost, 1)
 };
 
+#define AARCH64_FUSE_NOTHING	(0)
+#define AARCH64_FUSE_MOV_MOVK	(1 << 0)
+
 #if HAVE_DESIGNATED_INITIALIZERS && GCC_VERSION >= 2007
 __extension__
 #endif
@@ -274,7 +277,8 @@ static const struct tune_params generic_tunings =
   &generic_regmove_cost,
   &generic_vector_cost,
   NAMED_PARAM (memmov_cost, 4),
-  NAMED_PARAM (issue_rate, 2)
+  NAMED_PARAM (issue_rate, 2),
+  NAMED_PARAM (fuseable_ops, AARCH64_FUSE_NOTHING)
 };
 
 static const struct tune_params cortexa53_tunings =
@@ -284,7 +288,8 @@ static const struct tune_params cortexa53_tunings =
   &generic_regmove_cost,
   &generic_vector_cost,
   NAMED_PARAM (memmov_cost, 4),
-  NAMED_PARAM (issue_rate, 2)
+  NAMED_PARAM (issue_rate, 2),
+  NAMED_PARAM (fuseable_ops, AARCH64_FUSE_MOV_MOVK)
 };
 
 static const struct tune_params cortexa57_tunings =
@@ -294,7 +299,8 @@ static const struct tune_params cortexa57_tunings =
   &generic_regmove_cost,
   &cortexa57_vector_cost,
   NAMED_PARAM (memmov_cost, 4),
-  NAMED_PARAM (issue_rate, 3)
+  NAMED_PARAM (issue_rate, 3),
+  NAMED_PARAM (fuseable_ops, AARCH64_FUSE_MOV_MOVK)
 };
 
 /* A processor implementing AArch64.  */
@@ -9335,6 +9341,59 @@ aarch64_cannot_change_mode_class (enum machine_mode from,
   return true;
 }
 
+/* Implement TARGET_SCHED_MACRO_FUSION_P.  Return true if target supports
+   instruction fusion of some sort.  */
+
+static bool
+aarch64_macro_fusion_p (void)
+{
+  return aarch64_tune_params->fuseable_ops != AARCH64_FUSE_NOTHING;
+}
+
+
+/* Implement TARGET_SCHED_MACRO_FUSION_PAIR_P.  Return true if PREV and CURR
+   should be kept together during scheduling.  */
+
+static bool
+aarch_macro_fusion_pair_p (rtx prev, rtx curr)
+{
+  rtx set_dest;
+  rtx prev_set = single_set (prev);
+  rtx curr_set = single_set (curr);
+  /* prev and curr are simple SET insns i.e. no flag setting or branching.  */
+  bool simple_sets_p = prev_set && curr_set && !any_condjump_p (curr);
+
+  if (!aarch64_macro_fusion_p ())
+    return false;
+
+  if (simple_sets_p
+      && (aarch64_tune_params->fuseable_ops & AARCH64_FUSE_MOV_MOVK))
+    {
+      /* We are trying to match:
+         prev (mov)  == (set (reg r0) (const_int imm16))
+         curr (movk) == (set (zero_extract (reg r0)
+                                           (const_int 16)
+                                           (const_int 16))
+                             (const_int imm16_1))  */
+
+      set_dest = SET_DEST (curr_set);
+
+      if (GET_CODE (set_dest) == ZERO_EXTRACT
+          && CONST_INT_P (SET_SRC (curr_set))
+          && CONST_INT_P (SET_SRC (prev_set))
+          && CONST_INT_P (XEXP (set_dest, 2))
+          && INTVAL (XEXP (set_dest, 2)) == 16
+          && REG_P (XEXP (set_dest, 0))
+          && REG_P (SET_DEST (prev_set))
+          && REGNO (XEXP (set_dest, 0)) == REGNO (SET_DEST (prev_set)))
+        {
+          return true;
+        }
+    }
+
+  return false;
+}
+
 #undef TARGET_ADDRESS_COST
 #define TARGET_ADDRESS_COST aarch64_address_cost
 
@@ -9574,6 +9633,11 @@ aarch64_cannot_change_mode_class (enum machine_mode from,
 #undef TARGET_FLAGS_REGNUM
 #define TARGET_FLAGS_REGNUM CC_REGNUM
 
+#undef TARGET_SCHED_MACRO_FUSION_P
+#define TARGET_SCHED_MACRO_FUSION_P aarch64_macro_fusion_p
+
+#undef TARGET_SCHED_MACRO_FUSION_PAIR_P
+#define TARGET_SCHED_MACRO_FUSION_PAIR_P aarch_macro_fusion_pair_p
 struct gcc_target targetm = TARGET_INITIALIZER;
 
 #include "gt-aarch64.h"
