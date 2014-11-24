@@ -1,5 +1,13 @@
 2014-11-24  Kyrylo Tkachov  <kyrylo.tkachov@arm.com>
 
+	* config/aarch64/aarch64.c: Include tm-constrs.h
+	(AARCH64_FUSE_ADRP_ADD): Define.
+	(cortexa57_tunings): Add AARCH64_FUSE_ADRP_ADD to fuseable_ops.
+	(cortexa53_tunings): Likewise.
+	(aarch_macro_fusion_pair_p): Handle AARCH64_FUSE_ADRP_ADD.
+
+2014-11-24  Kyrylo Tkachov  <kyrylo.tkachov@arm.com>
+
 	* config/aarch64/aarch64-protos.h (struct tune_params): Add
 	fuseable_ops field.
 	* config/aarch64/aarch64.c (generic_tunings): Specify fuseable_ops.
