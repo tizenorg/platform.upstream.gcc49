@@ -29858,6 +29858,7 @@ arm_issue_rate (void)
     case cortexa8:
     case cortexa9:
     case cortexa12:
+    case cortexa17:
     case cortexa53:
     case fa726te:
     case marvell_pj4:
