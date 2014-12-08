@@ -2,6 +2,14 @@
 %define cross_arch aarch64
 %define gcc_target_arch aarch64-tizen-linux
 %define gcc_icecream 1
+
+# Force libdir for aarch64-on-i586 cross toolchain so that include search
+# path will be correct.
+%if %{cross_arch} == "aarch64"
+%define target_libdir %{_prefix}/lib64
+%else
+%define target_libdir = %{_libdir}
+%endif
 #
 # spec file for package gcc (Version 4.8.2)
 #
@@ -146,7 +154,7 @@ gcc-obj-c++.
 %endif
 %endif
 
-%define libsubdir %{_libdir}/gcc/%{GCCDIST}/%{gcc_dir_version}
+%define libsubdir %{target_libdir}/gcc/%{GCCDIST}/%{gcc_dir_version}
 %define gxxinclude %{_prefix}/include/c++/%{gcc_dir_version}
 
 
@@ -293,8 +301,8 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 	--prefix=%{_prefix} \
 	--infodir=%{_infodir} \
 	--mandir=%{_mandir} \
-	--libdir=%{_libdir} \
-	--libexecdir=%{_libdir} \
+	--libdir=%{target_libdir} \
+	--libexecdir=%{target_libdir} \
 	--enable-languages=$languages \
 	$ENABLE_CHECKING \
 	--with-gxx-include-dir=%{_prefix}/include/c++/%{gcc_dir_version} \
@@ -452,7 +460,7 @@ Group:	Development/Languages/C and C++
 This package contains the icecream environment for the GNU C Compiler
 
 
-%define targetlibsubdir %{_libdir}/gcc/%{gcc_target_arch}/%{gcc_dir_version}
+%define targetlibsubdir %{target_libdir}/gcc/%{gcc_target_arch}/%{gcc_dir_version}
 
 %install
 cd obj-%{GCCDIST}
@@ -464,7 +472,7 @@ make DESTDIR=$RPM_BUILD_ROOT install-host
 rm -rf $RPM_BUILD_ROOT/%{targetlibsubdir}/include-fixed
 rm -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.la
 # common fixup
-rm -f $RPM_BUILD_ROOT%{_libdir}/libiberty.a
+rm -f $RPM_BUILD_ROOT%{target_libdir}/libiberty.a
 
 # remove docs and disable automated generation
 %remove_docs
@@ -527,7 +535,7 @@ rm -r env
 %defattr(-,root,root)
 %{_prefix}/bin/*
 %dir %{targetlibsubdir}
-%dir %{_libdir}/gcc/%{gcc_target_arch}
+%dir %{target_libdir}/gcc/%{gcc_target_arch}
 %{targetlibsubdir}
 
 %files -n cross-%cross_arch-gcc49-icecream-backend
