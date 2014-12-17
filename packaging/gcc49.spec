@@ -241,11 +241,9 @@ Requires: gcc49-info gcc49-locale
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 Source:		gcc-%{version}.tar.bz2
 Source1:	change_spec
-Source2:	libffi49-rpmlintrc
 Source3:	gcc49-rpmlintrc
 Source4:	ecj.jar
 Source5:	baselibs.conf
-Source6:	libgcj49-rpmlintrc
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
