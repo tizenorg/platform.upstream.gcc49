@@ -285,8 +285,11 @@ export PATH="`pwd`/host-tools/bin:$PATH"
 GCJ_EXTRA_FLAGS="-marm"
 %endif
 
-CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" XCFLAGS="$RPM_OPT_FLAGS" \
-TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
+%ifarch aarch64
+export LD=ld.bfd
+%endif
+export CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" XCFLAGS="$RPM_OPT_FLAGS"
+export TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS"
 ../configure \
 	--prefix=%{_prefix} \
 	--infodir=%{_infodir} \
@@ -385,6 +388,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 %endif
 %if  "%{TARGET_ARCH}" == "aarch64"
 	--with-arch=armv8-a \
+	--with-ld=/usr/bin/ld.bfd \
 	--disable-sjlj-exceptions \
 %endif
 %if "%{TARGET_ARCH}" == "powerpc" || "%{TARGET_ARCH}" == "powerpc64"
