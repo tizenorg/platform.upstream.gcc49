@@ -1,3 +1,8 @@
+2015-01-13  Andrew Pinski   <apinski@cavium.com>
+
+	* config/aarch64/aarch64.c (fusion_load_store): Check dest mode
+	instead of src mode.    
+
 2014-12-05  Bin Cheng  <bin.cheng@arm.com>
 
 	* config/aarch64/aarch64.md (load_pair<mode>): Split to
