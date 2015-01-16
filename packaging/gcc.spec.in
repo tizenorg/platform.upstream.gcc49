@@ -132,6 +132,9 @@
 %define selfconflict() %1
 
 Name:         gcc@base_ver@
+# For unknown reason when libgcc.so is built with gold, it causes python to
+# make syscalls with zero-length buffers. That's why we disable gold for gcc
+BuildConflicts: binutils-gold
 # With generated files in src we could drop the following
 BuildRequires: bison
 BuildRequires: flex
