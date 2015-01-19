@@ -83,12 +83,10 @@ if test "$do_icecream" = 1 ; then
 add_cross cross-aarch64-gcc$base_ver aarch64 aarch64-tizen-linux %define gcc_icecream 1
 add_cross cross-armv7l-gcc$base_ver armv7l armv7l-tizen-linux-gnueabi %define gcc_icecream 1
 add_cross cross-armv7hl-gcc$base_ver armv7hl armv7hl-tizen-linux-gnueabi %define gcc_icecream 1
-add_cross cross-x86_64-gcc$base_ver x86_64 x86_64-tizen-linux %define gcc_icecream 1
 else
 add_cross cross-aarch64-gcc$base_ver aarch64 aarch64-tizen-linux
 add_cross cross-armv7l-gcc$base_ver armv7l armv7l-tizen-linux-gnueabi
 add_cross cross-armv7hl-gcc$base_ver armv7hl armv7hl-tizen-linux-gnueabi
-add_cross cross-x86_64-gcc$base_ver x86_64 x86_64-tizen-linux
 fi
 
 for f in *.spec; do
