@@ -1,0 +1,11 @@
+Code-Review+1: JF Ding <jian-feng.ding@intel.com>
+Code-Review+1: Ilya Palachev <i.palachev@samsung.com>
+Code-Review+1: Vyacheslav Barinov <v.barinov@samsung.com>
+Code-Review+1: Stéphane Desneux (sdx) <stephane.desneux@open.eurogiciel.org>
+Code-Review+2: Chanho Park <chanho61.park@samsung.com>
+Verified+1: Chanho Park <chanho61.park@samsung.com>
+Submitted-by: Chanho Park <chanho61.park@samsung.com>
+Submitted-at: Mon, 19 Jan 2015 17:18:47 -0800
+Reviewed-on: https://review.tizen.org/gerrit/33984
+Project: platform/upstream/gcc49
+Branch: refs/heads/tizen
