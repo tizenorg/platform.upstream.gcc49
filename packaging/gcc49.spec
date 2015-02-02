@@ -922,9 +922,15 @@ Provides:	libasan%{libasan_sover} = %{version}-%{release}
 The runtime library needed to run programs compiled with the
 -fsanitize=address option of the GNU Compiler Collection (GCC).
 
-%post -n libasan%{libasan_sover}%{libasan_suffix} -p /sbin/ldconfig
+%post -n libasan%{libasan_sover}%{libasan_suffix}
+if ! grep libasan /etc/ld.so.preload; then
+  echo "libasan.so.1" >> /etc/ld.so.preload
+fi
+/sbin/ldconfig
 
-%postun -n libasan%{libasan_sover}%{libasan_suffix} -p /sbin/ldconfig
+%postun -n libasan%{libasan_sover}%{libasan_suffix}
+sed -i -e "/libasan/d" /etc/ld.so.preload
+/sbin/ldconfig
 %package -n libasan%{libasan_sover}%{libasan_suffix}-32bit
 Summary:      The GNU Compiler Address Sanitizer Runtime Library
 License:        MIT
@@ -935,9 +941,15 @@ Provides:	libasan%{libasan_sover}-32bit = %{version}-%{release}
 The runtime library needed to run programs compiled with the
 -fsanitize=address option of the GNU Compiler Collection (GCC).
 
-%post -n libasan%{libasan_sover}%{libasan_suffix}-32bit -p /sbin/ldconfig
+%post -n libasan%{libasan_sover}%{libasan_suffix}-32bit
+if ! grep libasan /etc/ld.so.preload; then
+  echo "libasan.so.1" >> /etc/ld.so.preload
+fi
+/sbin/ldconfig
 
-%postun -n libasan%{libasan_sover}%{libasan_suffix}-32bit -p /sbin/ldconfig
+%postun -n libasan%{libasan_sover}%{libasan_suffix}-32bit
+sed -i -e "/libasan/d" /etc/ld.so.preload
+/sbin/ldconfig
 %package -n libasan%{libasan_sover}%{libasan_suffix}-64bit
 Summary:      The GNU Compiler Address Sanitizer Runtime Library
 License:        MIT
@@ -948,9 +960,15 @@ Provides:	libasan%{libasan_sover}-64bit = %{version}-%{release}
 The runtime library needed to run programs compiled with the
 -fsanitize=address option of the GNU Compiler Collection (GCC).
 
-%post -n libasan%{libasan_sover}%{libasan_suffix}-64bit -p /sbin/ldconfig
+%post -n libasan%{libasan_sover}%{libasan_suffix}-64bit
+if ! grep libasan /etc/ld.so.preload; then
+  echo "libasan.so.1" >> /etc/ld.so.preload
+fi
+/sbin/ldconfig
 
-%postun -n libasan%{libasan_sover}%{libasan_suffix}-64bit -p /sbin/ldconfig
+%postun -n libasan%{libasan_sover}%{libasan_suffix}-64bit
+sed -i -e "/libasan/d" /etc/ld.so.preload
+/sbin/ldconfig
 
 %package -n libtsan%{libtsan_sover}%{libtsan_suffix}
 Summary:      The GNU Compiler Thread Sanitizer Runtime Library

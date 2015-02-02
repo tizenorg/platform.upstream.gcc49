@@ -628,9 +628,15 @@ Provides:	libasan%{libasan_sover}@variant@ = %{version}-%{release}
 The runtime library needed to run programs compiled with the
 -fsanitize=address option of the GNU Compiler Collection (GCC).
 
-%post -n libasan%{libasan_sover}%{libasan_suffix}@variant@ -p /sbin/ldconfig
+%post -n libasan%{libasan_sover}%{libasan_suffix}@variant@
+if ! grep libasan /etc/ld.so.preload; then
+  echo "libasan.so.1" >> /etc/ld.so.preload
+fi
+/sbin/ldconfig
 
-%postun -n libasan%{libasan_sover}%{libasan_suffix}@variant@ -p /sbin/ldconfig
+%postun -n libasan%{libasan_sover}%{libasan_suffix}@variant@
+sed -i -e "/libasan/d" /etc/ld.so.preload
+/sbin/ldconfig
 # PACKAGE-END
 
 # PACKAGE-BEGIN
