@@ -435,8 +435,26 @@ void NOINLINE __asan_set_death_callback(void (*callback)(void)) {
   death_callback = callback;
 }
 
+// TODO: unmount at the end?
+extern "C"
+int mount(const char *source, const char *target, const char *filesystemtype,
+          unsigned long mountflags, const void *data);
+bool MaybeMountProcFS() {
+  uptr tmp = OpenFile("/proc/self/maps", /*write*/false);
+  if(!internal_iserror(tmp)) {
+    internal_close(tmp);
+    return true;
+  }
+  if(0 != mount("proc", "/proc", "proc", 0, 0)) {
+    Report("Failed to mount /proc, Asan is likely to fail\n");
+    return false;
+  }
+  return true;
+}
+
 void __asan_init() {
   if (asan_inited) return;
+  MaybeMountProcFS();
   SanitizerToolName = "AddressSanitizer";
   CHECK(!asan_init_is_running && "ASan init calls itself!");
   asan_init_is_running = true;
