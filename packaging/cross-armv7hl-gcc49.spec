@@ -67,6 +67,9 @@ BuildRequires: libunwind-devel
 BuildRequires: cross-%cross_arch-glibc-devel
 %endif
 
+Requires(post):    update-alternatives
+Requires(postun):  update-alternatives
+
 %define biarch_targets x86_64 s390x powerpc64 powerpc sparc sparc64
 
 URL:          http://gcc.gnu.org/
@@ -146,6 +149,15 @@ gcc-obj-c++.
 
 %define libsubdir %{_libdir}/gcc/%{GCCDIST}/%{gcc_dir_version}
 %define gxxinclude %{_prefix}/include/c++/%{gcc_dir_version}
+
+%define bfd_plugin_dir      %{_bindir}/../lib/bfd-plugins
+%define bfd_plugin_lto_name liblto_plugin_%{_arch}.so
+%define bfd_plugin_lto      %{bfd_plugin_dir}/%{bfd_plugin_lto_name}
+%if 0%{?cross_arch:1}
+%define gcc_plugin_lto      %{targetlibsubdir}/liblto_plugin.so
+%else
+%define gcc_plugin_lto      %{libsubdir}/liblto_plugin.so
+%endif
 
 
 %prep
@@ -485,7 +497,7 @@ install -s -D %{_prefix}/bin/%{canonical_target}-tizen-linux%{?canonical_target_
 install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/g++
 install -s $RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} 	$RPM_BUILD_ROOT/env/usr/bin/gcc
 
-for back in cc1 cc1plus; do
+for back in cc1 cc1plus collect2 lto1 lto-wrapper; do
 	install -s -D $RPM_BUILD_ROOT/%{targetlibsubdir}/$back 		$RPM_BUILD_ROOT/env%{targetlibsubdir}/$back
 done
 if test -f $RPM_BUILD_ROOT/%{targetlibsubdir}/liblto_plugin.so; then
@@ -521,12 +533,25 @@ rpm -q --changelog glibc >  usr/share/icecream-envs/%{name}_%{_arch}.glibc
 rpm -q --changelog binutils >  usr/share/icecream-envs/%{name}_%{_arch}.binutils
 rm -r env
 
+# liblto_plugin alternatives
+mkdir -p "$RPM_BUILD_ROOT%{bfd_plugin_dir}"
+touch "$RPM_BUILD_ROOT%{bfd_plugin_lto}"
+
+%post
+"%_sbindir/update-alternatives" --install \
+    "%{bfd_plugin_lto}" "%{bfd_plugin_lto_name}" "%{gcc_plugin_lto}" 5
+
+%preun
+"%_sbindir/update-alternatives" --remove "%{bfd_plugin_lto_name}" "%{gcc_plugin_lto}"
+
+
 %files
 %defattr(-,root,root)
 %{_prefix}/bin/*
 %dir %{targetlibsubdir}
 %dir %{_libdir}/gcc/%{gcc_target_arch}
 %{targetlibsubdir}
+%ghost %{bfd_plugin_lto}
 
 %files -n cross-%cross_arch-gcc49-icecream-backend
 %defattr(-,root,root)
