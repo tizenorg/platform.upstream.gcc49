@@ -131,6 +131,7 @@
 
 %define selfconflict() %1
 
+
 Name:         gcc@base_ver@
 # For unknown reason when libgcc.so is built with gold, it causes python to
 # make syscalls with zero-length buffers. That's why we disable gold for gcc
@@ -169,6 +170,9 @@ BuildRequires: dejagnu
 BuildRequires: expect
 BuildRequires: gdb
 %endif
+
+Requires(post):    update-alternatives
+Requires(postun):  update-alternatives
 
 %define separate_bi32 0
 %define separate_bi64 0
@@ -939,6 +943,15 @@ Results from running the gcc and target library testsuites.
 
 %define libsubdir %{_libdir}/gcc/%{GCCDIST}/%{gcc_dir_version}
 %define gxxinclude %{_prefix}/include/c++/%{gcc_dir_version}
+
+%define bfd_plugin_dir      %{_bindir}/../lib/bfd-plugins
+%define bfd_plugin_lto_name liblto_plugin_%{_arch}.so
+%define bfd_plugin_lto      %{bfd_plugin_dir}/%{bfd_plugin_lto_name}
+%if 0%{?cross_arch:1}
+%define gcc_plugin_lto      %{targetlibsubdir}/liblto_plugin.so
+%else
+%define gcc_plugin_lto      %{libsubdir}/liblto_plugin.so
+%endif
 
 # COMMON-END
 
@@ -1759,6 +1772,17 @@ cd ..
 %find_lang libstdc++
 cat cpplib%{binsuffix}.lang gcc%{binsuffix}.lang > gcc@base_ver@-locale.lang
 
+# liblto_plugin alternatives
+mkdir -p $RPM_BUILD_ROOT%{bfd_plugin_dir}
+touch $RPM_BUILD_ROOT%{bfd_plugin_lto}
+
+%post
+"%_sbindir/update-alternatives" --install \
+    "%{bfd_plugin_lto}" "%{bfd_plugin_lto_name}" "%{gcc_plugin_lto}" 10
+
+%preun
+"%_sbindir/update-alternatives" --remove "%{bfd_plugin_lto_name}" "%{gcc_plugin_lto}"
+
 %post info
 %install_info --info-dir=%{_infodir} %{_infodir}/cpp%{binsuffix}.info.gz
 %install_info --info-dir=%{_infodir} %{_infodir}/cppinternals%{binsuffix}.info.gz
@@ -1826,6 +1850,7 @@ cat cpplib%{binsuffix}.lang gcc%{binsuffix}.lang > gcc@base_ver@-locale.lang
 %{libsubdir}/lto1
 %{libsubdir}/lto-wrapper
 %{libsubdir}/liblto_plugin.so*
+%ghost %{bfd_plugin_lto}
 %{libsubdir}/include-fixed/README
 %{libsubdir}/include-fixed/limits.h
 %{libsubdir}/include-fixed/syslimits.h

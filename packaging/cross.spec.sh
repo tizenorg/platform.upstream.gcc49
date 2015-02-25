@@ -75,6 +75,9 @@ BuildRequires: libunwind-devel
 BuildRequires: cross-%cross_arch-glibc-devel
 %endif
 
+Requires(post):    update-alternatives
+Requires(postun):  update-alternatives
+
 # COMMON-BEGIN
 # COMMON-END
 
@@ -130,7 +133,7 @@ install -s \$RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-g++%{binsuffix} \
 install -s \$RPM_BUILD_ROOT/%{_prefix}/bin/%{gcc_target_arch}-gcc%{binsuffix} \
 	\$RPM_BUILD_ROOT/env/usr/bin/gcc
 
-for back in cc1 cc1plus; do
+for back in cc1 cc1plus collect2 lto1 lto-wrapper; do
 	install -s -D \$RPM_BUILD_ROOT/%{targetlibsubdir}/\$back \
 		\$RPM_BUILD_ROOT/env%{targetlibsubdir}/\$back
 done
@@ -170,12 +173,25 @@ rpm -q --changelog glibc >  usr/share/icecream-envs/%{name}_%{_arch}.glibc
 rpm -q --changelog binutils >  usr/share/icecream-envs/%{name}_%{_arch}.binutils
 rm -r env
 
+# liblto_plugin alternatives
+mkdir -p "\$RPM_BUILD_ROOT%{bfd_plugin_dir}"
+touch "\$RPM_BUILD_ROOT%{bfd_plugin_lto}"
+
+%post
+"%_sbindir/update-alternatives" --install \\
+    "%{bfd_plugin_lto}" "%{bfd_plugin_lto_name}" "%{gcc_plugin_lto}" 5
+
+%preun
+"%_sbindir/update-alternatives" --remove "%{bfd_plugin_lto_name}" "%{gcc_plugin_lto}"
+
+
 %files
 %defattr(-,root,root)
 %{_prefix}/bin/*
 %dir %{targetlibsubdir}
 %dir %{_libdir}/gcc/%{gcc_target_arch}
 %{targetlibsubdir}
+%ghost %{bfd_plugin_lto}
 
 %files -n cross-%cross_arch-gcc@base_ver@-icecream-backend
 %defattr(-,root,root)
