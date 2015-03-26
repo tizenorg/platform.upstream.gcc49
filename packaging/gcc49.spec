@@ -1425,6 +1425,15 @@ Group:        Development/Languages
 %description -n gcc49-testresults
 Results from running the gcc and target library testsuites.
 
+%if 0%{build_crt}
+%package -n crt
+Summary: crt and libgcc binaries
+License:        GPL-3.0+
+Group:          Development/Building
+
+%description -n crt
+Binaries that can be used by clang for independent build.
+%endif
 
 
 
@@ -2127,6 +2136,12 @@ fi
 ln -sf %{versmainlibdirbi64}/libgcc_s.so $RPM_BUILD_ROOT%{versmainlibdirbi64}/libgcc_s_64.so
 chmod a+x $RPM_BUILD_ROOT/lib64/libgcc_s.so.%{libgcc_s}
 %endif
+%endif
+
+%if 0%{build_crt}
+cp $RPM_BUILD_ROOT%{libsubdir}/crt* $RPM_BUILD_ROOT%{_libdir}/
+cp $RPM_BUILD_ROOT%{libsubdir}/libgcc.a $RPM_BUILD_ROOT%{_libdir}/
+ln -s libgcc_s.so.1 $RPM_BUILD_ROOT%{_libdir}/libgcc_s.so
 %endif
 
 
@@ -3147,6 +3162,14 @@ touch $RPM_BUILD_ROOT%{bfd_plugin_lto}
 %doc testresults/test_summary.txt
 %doc testresults/*.sum
 %doc testresults/*.log
+%endif
+
+%if 0%{build_crt}
+%files -n crt
+%defattr(-,root,root)
+%{_libdir}/crt*.o
+%{_libdir}/libgcc_s.so
+%{_libdir}/libgcc.a
 %endif
 
 
