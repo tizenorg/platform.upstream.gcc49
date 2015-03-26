@@ -1615,6 +1615,7 @@ chmod a+x $RPM_BUILD_ROOT/lib64/libgcc_s.so.%{libgcc_s}
 cp $RPM_BUILD_ROOT%{libsubdir}/crt* $RPM_BUILD_ROOT%{_libdir}/
 cp $RPM_BUILD_ROOT%{libsubdir}/libgcc.a $RPM_BUILD_ROOT%{_libdir}/
 ln -s libgcc_s.so.1 $RPM_BUILD_ROOT%{_libdir}/libgcc_s.so
+ln -s libstdc++.so.6 $RPM_BUILD_ROOT%{_libdir}/libstdc++.so
 %endif
 
 # LIBJAVA-DELETE-END
@@ -1797,6 +1798,20 @@ touch $RPM_BUILD_ROOT%{bfd_plugin_lto}
 
 %preun
 "%_sbindir/update-alternatives" --remove "%{bfd_plugin_lto_name}" "%{gcc_plugin_lto}"
+
+%if 0%{build_crt}
+%post -n crt
+if [ -f %{_bindir}/gcc ]; then mv %{_bindir}/gcc %{_bindir}/gcc.bak; fi
+if [ -f %{_bindir}/g++ ]; then mv %{_bindir}/g++ %{_bindir}/g++.bak; fi
+ln -s clang $RPM_BUILD_ROOT%{_bindir}/gcc
+ln -s clang++ $RPM_BUILD_ROOT%{_bindir}/g++
+
+%preun -n crt
+rm -rf %{_bindir}/gcc
+rm -rf %{_bindir}/g++
+if [ -f %{_bindir}/gcc.bak ]; then mv %{_bindir}/gcc.bak %{_bindir}/gcc; fi
+if [ -f %{_bindir}/g++.bak ]; then mv %{_bindir}/g++.bak %{_bindir}/g++; fi
+%endif
 
 %post info
 %install_info --info-dir=%{_infodir} %{_infodir}/cpp%{binsuffix}.info.gz
@@ -2654,6 +2669,7 @@ touch $RPM_BUILD_ROOT%{bfd_plugin_lto}
 %{_libdir}/crt*.o
 %{_libdir}/libgcc_s.so
 %{_libdir}/libgcc.a
+%{_libdir}/libstdc++.so
 %endif
 
 
