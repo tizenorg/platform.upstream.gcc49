@@ -1430,6 +1430,10 @@ Results from running the gcc and target library testsuites.
 Summary: crt and libgcc binaries
 License:        GPL-3.0+
 Group:          Development/Building
+Provides: gcc-c++
+Provides: gcc49-c++
+Provides: gcc49
+Provides: cpp49
 
 %description -n crt
 Binaries that can be used by clang for independent build.
