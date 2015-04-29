@@ -110,7 +110,14 @@ static struct cfg_stats_d cfg_stats;
 struct locus_discrim_map
 {
   location_t locus;
-  int discriminator;
+  /* Different calls belonging to the same source line will be assigned
+     different discriminators. But we want to keep the discriminator of
+     the first call in the same source line to be 0, in order to reduce
+     the .debug_line section size. needs_increment is used for this
+     purpose. It is initialized as false and will be set to true after
+     the first call is seen.  */
+  bool needs_increment:1;
+  int discriminator:31;
 };
 
 /* Hashtable helpers.  */
@@ -942,10 +949,15 @@ make_edges (void)
 /* Find the next available discriminator value for LOCUS.  The
    discriminator distinguishes among several basic blocks that
    share a common locus, allowing for more accurate sample-based
-   profiling.  */
+   profiling. If RETURN_NEXT is true, return the next discriminator
+   anyway. If RETURN_NEXT is not true, we may not increase the
+   discriminator if locus_discrim_map::needs_increment is false,
+   which is used when the stmt is the first call stmt in current
+   source line. locus_discrim_map::needs_increment will be set to
+   true after the first call is seen.  */
 
 static int
-next_discriminator_for_locus (location_t locus)
+next_discriminator_for_locus (location_t locus, bool return_next)
 {
   struct locus_discrim_map item;
   struct locus_discrim_map **slot;
@@ -960,9 +972,13 @@ next_discriminator_for_locus (location_t locus)
       *slot = XNEW (struct locus_discrim_map);
       gcc_assert (*slot);
       (*slot)->locus = locus;
+      (*slot)->needs_increment = false;
       (*slot)->discriminator = 0;
     }
-  (*slot)->discriminator++;
+  if (return_next || (*slot)->needs_increment)
+    (*slot)->discriminator++;
+  else
+    (*slot)->needs_increment = true;
   return (*slot)->discriminator;
 }
 
@@ -988,6 +1004,32 @@ same_line_p (location_t locus1, location_t locus2)
           && filename_cmp (from.file, to.file) == 0);
 }
 
+/* Assign a unique discriminator value to instructions in block BB that
+   have the same LOCUS as its predecessor block.  */
+
+static void
+assign_discriminator (location_t locus, basic_block bb)
+{
+  gimple_stmt_iterator gsi;
+  int discriminator;
+
+  locus = map_discriminator_location (locus);
+
+  if (locus == UNKNOWN_LOCATION)
+    return;
+
+  discriminator = next_discriminator_for_locus (locus, true);
+
+  for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+    {
+      gimple stmt = gsi_stmt (gsi);
+      location_t stmt_locus = gimple_location (stmt);
+      if (same_line_p (locus, stmt_locus))
+	gimple_set_location (stmt,
+	    location_with_discriminator (stmt_locus, discriminator));
+    }
+}
+
 /* Assign discriminators to each basic block.  */
 
 static void
@@ -999,8 +1041,26 @@ assign_discriminators (void)
     {
       edge e;
       edge_iterator ei;
+      gimple_stmt_iterator gsi;
       gimple last = last_stmt (bb);
       location_t locus = last ? gimple_location (last) : UNKNOWN_LOCATION;
+      location_t curr_locus = UNKNOWN_LOCATION;
+      int curr_discr = 0;
+
+      /* Traverse the basic block, if two function calls within a basic block
+	 are mapped to a same line, assign a new discriminator because a call
+	 stmt could be a split point of a basic block.  */
+      for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+	{
+	  gimple stmt = gsi_stmt (gsi);
+          if (gimple_code (stmt) == GIMPLE_CALL)
+            {
+	      curr_locus = gimple_location (stmt);
+	      curr_discr = next_discriminator_for_locus (curr_locus, false);
+	      gimple_set_location (stmt, location_with_discriminator (
+		  curr_locus, curr_discr));
+	    }
+	}
 
       if (locus == UNKNOWN_LOCATION)
 	continue;
@@ -1012,10 +1072,12 @@ assign_discriminators (void)
 	  if ((first && same_line_p (locus, gimple_location (first)))
 	      || (last && same_line_p (locus, gimple_location (last))))
 	    {
-	      if (e->dest->discriminator != 0 && bb->discriminator == 0)
-		bb->discriminator = next_discriminator_for_locus (locus);
+	      if (((first && has_discriminator (gimple_location (first)))
+		   || (last && has_discriminator (gimple_location (last))))
+		  && !has_discriminator (locus))
+		assign_discriminator (locus, bb);
 	      else
-		e->dest->discriminator = next_discriminator_for_locus (locus);
+		assign_discriminator (locus, e->dest);
 	    }
 	}
     }

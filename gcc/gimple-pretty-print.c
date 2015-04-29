@@ -2268,8 +2268,6 @@ dump_gimple_bb_header (FILE *outf, basic_block bb, int indent, int flags)
 			 indent, "", get_lineno (gsi_stmt (gsi)));
 		break;
 	      }
-	  if (bb->discriminator)
-	    fprintf (outf, ", discriminator %i", bb->discriminator);
 	  fputc ('\n', outf);
 	}
     }
