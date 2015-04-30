@@ -1,3 +1,125 @@
+2014-06-23  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64.md (*addsi3_aarch64): Add alternative in
+	vector registers.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Handle the case
+	where we were unable to cost an RTX.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Cost SYMBOL_REF,
+	HIGH, LO_SUM.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Cost TRUNCATE.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Cost FMA,
+	FLOAT_EXTEND, FLOAT_TRUNCATE, ABS, SMAX, and SMIN.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Cost comparison
+	operators.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Improve costs for
+	DIV/MOD.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_arith_op_extract_p): New.
+	(aarch64_rtx_costs): Improve costs for SIGN/ZERO_EXTRACT.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Improve costs for
+	rotates and shifts.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Cost
+	ZERO_EXTEND and SIGN_EXTEND better.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Improve cost for
+	logical operations.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Use address
+	costs when costing loads and stores to memory.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philip Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Improve costing
+	for SET RTX.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs): Set default costs.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_strip_shift_or_extend): Rename
+	to...
+	(aarch64_strip_extend): ...this, don't strip shifts, check RTX is
+	well formed.
+	(aarch64_rtx_mult_cost): New.
+	(aarch64_rtx_costs): Use it, refactor as appropriate.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+	    Philipp Tomsich  <philipp.tomsich@theobroma-systems.com>
+
+	* config/aarch64/aarch64.c (aarch64_build_constant): Conditionally
+	emit instructions, return number of instructions which would
+	be emitted.
+	(aarch64_add_constant): Update call to aarch64_build_constant.
+	(aarch64_output_mi_thunk): Likewise.
+	(aarch64_rtx_costs): Estimate cost of a CONST_INT, cost
+	a CONST_DOUBLE.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64.c (aarch64_rtx_costs_wrapper): New.
+	(TARGET_RTX_COSTS): Call it.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64.c (cortexa57_addrcost_table): New.
+	(cortexa57_vector_cost): Likewise.
+	(cortexa57_tunings): Use them.
+
+2014-05-16  James Greenhalgh  <james.greenhalgh@arm.com>
+
+	* config/aarch64/aarch64-protos.h (scale_addr_mode_cost): New.
+	(cpu_addrcost_table): Use it.
+	* config/aarch64/aarch64.c (generic_addrcost_table): Initialize it.
+	(aarch64_address_cost): Rewrite using aarch64_classify_address,
+	move it.
+
+2014-04-22  Ramana Radhakrishnan  <ramana.radhakrishnan@arm.com>
+
+	* config/aarch64/aarch64.c (TARGET_FLAGS_REGNUM): Define.
+
 2014-10-30  Release Manager
 
 	* GCC 4.9.2 released.
