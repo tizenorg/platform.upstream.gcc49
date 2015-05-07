@@ -178,10 +178,14 @@ add_standard_paths (const char *sysroot, const char *iprefix,
 	    {
 	      char *sysroot_no_trailing_dir_separator = xstrdup (sysroot);
 	      size_t sysroot_len = strlen (sysroot);
+	      const char *real_sysroot;
 
 	      if (sysroot_len > 0 && sysroot[sysroot_len - 1] == DIR_SEPARATOR)
 		sysroot_no_trailing_dir_separator[sysroot_len - 1] = '\0';
-	      str = concat (sysroot_no_trailing_dir_separator, p->fname, NULL);
+
+	      real_sysroot = ((p->fname[0] == DIR_SEPARATOR)
+			      ? sysroot_no_trailing_dir_separator : sysroot);
+	      str = concat (real_sysroot, p->fname, NULL);
 	      free (sysroot_no_trailing_dir_separator);
 	    }
 	  else if (!p->add_sysroot && relocated
