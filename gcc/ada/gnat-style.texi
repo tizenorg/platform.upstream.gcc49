@@ -31,7 +31,7 @@ Texts.  A copy of the license is included in the section entitled
 
 @dircategory Software development
 @direntry
-* gnat-style: (gnat-style-4.9).      GNAT Coding Style
+* gnat-style: (gnat-style).      GNAT Coding Style
 @end direntry
 
 @macro syntax{element}
