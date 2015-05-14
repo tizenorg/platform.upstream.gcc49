@@ -25,7 +25,7 @@ copy and modify this GNU manual.
 @ifinfo
 @dircategory GNU Libraries
 @direntry
-* libquadmath: (libquadmath-4.9).                  GCC Quad-Precision Math Library
+* libquadmath: (libquadmath).                  GCC Quad-Precision Math Library
 @end direntry
 
 This manual documents the GCC Quad-Precision Math Library API.
