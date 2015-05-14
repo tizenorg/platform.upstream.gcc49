@@ -2800,28 +2800,28 @@ cat cpplib%{binsuffix}.lang gcc%{binsuffix}.lang > gcc49-locale.lang
 
 %files info
 %defattr(-,root,root)
-%doc %{_infodir}/cpp%{binsuffix}.info*.gz
-%doc %{_infodir}/cppinternals%{binsuffix}.info*.gz
-%doc %{_infodir}/gcc%{binsuffix}.info*.gz
-%doc %{_infodir}/gccint%{binsuffix}.info*.gz
-%doc %{_infodir}/gccinstall%{binsuffix}.info*.gz
+%doc %{_infodir}/cpp.info*.gz
+%doc %{_infodir}/cppinternals.info*.gz
+%doc %{_infodir}/gcc.info*.gz
+%doc %{_infodir}/gccint.info*.gz
+%doc %{_infodir}/gccinstall.info*.gz
 %doc %{_infodir}/libgomp%{binsuffix}.info*.gz
 %ifarch %itm_arch
 %doc %{_infodir}/libitm%{binsuffix}.info*.gz
 %endif
 %if %{build_fortran}
-%doc %{_infodir}/gfortran%{binsuffix}.info*.gz
+%doc %{_infodir}/gfortran.info*.gz
 %ifarch %quadmath_arch
 %doc %{_infodir}/libquadmath%{binsuffix}.info*.gz
 %endif
 %endif
 %if %{build_java}
-%doc %{_infodir}/gcj%{binsuffix}.info*.gz
+%doc %{_infodir}/gcj.info*.gz
 %endif
 %if %{build_ada}
-%doc %{_infodir}/gnat-style%{binsuffix}.info*gz
-%doc %{_infodir}/gnat_rm%{binsuffix}.info*gz
-%doc %{_infodir}/gnat_ugn%{binsuffix}.info*gz
+%doc %{_infodir}/gnat-style.info*gz
+%doc %{_infodir}/gnat_rm.info*gz
+%doc %{_infodir}/gnat_ugn.info*gz
 %endif
 
 %files -n cpp49

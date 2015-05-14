@@ -17106,7 +17106,7 @@ want to write code that checks whether these features are available, you can
 test for the GNU compiler the same way as for C programs: check for a
 predefined macro @code{__GNUC__}.  You can also use @code{__GNUG__} to
 test specifically for GNU C++ (@pxref{Common Predefined Macros,,
-Predefined Macros,@value{fncpp},The GNU C Preprocessor}).
+Predefined Macros,cpp,The GNU C Preprocessor}).
 
 @menu
 * C++ Volatiles::       What constitutes an access to a volatile object.
