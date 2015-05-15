@@ -165,8 +165,11 @@ plus_constant (enum machine_mode mode, rtx x, HOST_WIDE_INT c)
 
       if (CONSTANT_P (XEXP (x, 1)))
 	{
-	  x = gen_rtx_PLUS (mode, XEXP (x, 0),
-			    plus_constant (mode, XEXP (x, 1), c));
+          rtx term = plus_constant (mode, XEXP (x, 1), c);
+          if (term == const0_rtx)
+            x = XEXP (x, 0);
+          else
+            x = gen_rtx_PLUS (mode, XEXP (x, 0), term);
 	  c = 0;
 	}
       else if (find_constant_term_loc (&y))
