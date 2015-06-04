@@ -1253,6 +1253,7 @@ TCFLAGS="$RPM_OPT_FLAGS" GCJFLAGS="$RPM_OPT_FLAGS $GCJ_EXTRA_FLAGS" \
 %if  "%{TARGET_ARCH}" == "aarch64"
 	--with-arch=armv8-a \
 	--disable-sjlj-exceptions \
+    --enable-fix-cortex-a53-835769 \
 %endif
 %if "%{TARGET_ARCH}" == "powerpc" || "%{TARGET_ARCH}" == "powerpc64"
 %if "%{TARGET_ARCH}" == "powerpc"
