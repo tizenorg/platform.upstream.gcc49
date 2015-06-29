@@ -302,6 +302,12 @@ public:
   /* Mark LOC as annotated.  */
   void mark_annotated (location_t loc);
 
+  /* Check whether the profile is empty.  */
+  bool empty()
+  {
+    return map_.empty();
+  }
+
 private:
   /* Map from function_instance name index (in string_table) to
      function_instance.  */
@@ -918,6 +924,8 @@ read_profile (void)
   afdo_source_profile = autofdo_source_profile::create ();
   if (afdo_source_profile == NULL)
     error ("Cannot read function profile from %s.", auto_profile_file);
+  if (afdo_source_profile->empty ())
+    error ("The given profile %s is empty.", auto_profile_file);
 
   /* autofdo_module_profile.  */
   fake_read_autofdo_module_profile ();
