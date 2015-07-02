@@ -1,27 +1,14 @@
 #!/bin/bash
-# This script is called automatically during autobuild checkin.
-case $0 in
-  \./*)
-    here=$PWD
-    ;;
-  */*)
-    here=${0%/*}
-    ;;
-  *)
-    here=$PWD
-    ;;
-esac
-_here=$here
-# remove packaging/
-_here=${here/\/packaging/}
-case ${_here##*/} in
-  gcc-*)
-    suffix=${_here##*/}
-    set ${suffix#*-}-
-    ;;
-  gcc[0-9]*)
-    suffix=${_here##*/}
-    set ${suffix#gcc}
-    ;;
-esac
-. ${here}/change_spec
+
+# the script takes gcc.spec and creates the gcc-* packages
+for arch in armv7l aarch64; do
+
+   echo -n "Building package for $arch --> gcc-$arch ..."
+
+   echo "%define cross $arch" > gcc-${arch}.spec
+   echo "%define $arch 1" >> gcc-${arch}.spec
+   echo "" >> gcc-${arch}.spec
+   cat gcc.spec >> gcc-${arch}.spec
+   echo " done."
+done
+
