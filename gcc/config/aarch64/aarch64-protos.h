@@ -284,6 +284,7 @@ void aarch64_expand_compare_and_swap (rtx op[]);
 void aarch64_split_compare_and_swap (rtx op[]);
 void aarch64_split_atomic_op (enum rtx_code, rtx, rtx, rtx, rtx, rtx, rtx);
 
+bool aarch64_gen_adjusted_ldpstp (rtx *, bool, enum machine_mode, RTX_CODE);
 #endif /* RTX_CODE */
 
 void aarch64_init_builtins (void);
@@ -305,4 +306,8 @@ extern bool aarch64_madd_needs_nop (rtx);
 extern void aarch64_final_prescan_insn (rtx);
 extern bool
 aarch64_expand_vec_perm_const (rtx target, rtx op0, rtx op1, rtx sel);
+
+bool extract_base_offset_in_addr (rtx mem, rtx *base, rtx *offset);
+bool aarch64_operands_ok_for_ldpstp (rtx *, bool, enum machine_mode);
+bool aarch64_operands_adjust_ok_for_ldpstp (rtx *, bool, enum machine_mode);
 #endif /* GCC_AARCH64_PROTOS_H */
