@@ -1,3 +1,12 @@
+Code-Review+1: Vyacheslav Barinov <v.barinov@samsung.com>
+Verified+1: Vyacheslav Barinov <v.barinov@samsung.com>
+Code-Review+2: Dongkyun Son <dongkyun.s@samsung.com>
+Submitted-by: Dongkyun Son <dongkyun.s@samsung.com>
+Submitted-at: Sun, 16 Aug 2015 18:03:03 -0700
+Reviewed-on: https://review.tizen.org/gerrit/45837
+Project: platform/upstream/gcc49
+Branch: refs/heads/tizen
+
 Reviewed-on: https://review.tizen.org/gerrit/45837
 Project: platform/upstream/gcc49
 Branch: refs/heads/tizen
