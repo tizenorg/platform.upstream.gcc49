@@ -746,6 +746,10 @@ find %{buildroot}/%{libsubdir} -name "*.la" -exec rm -rf {} +
 ln -s gcc %{buildroot}%{_bindir}/cc
 mv %{buildroot}%{libsubdir}/libstdc++.so*-gdb.py %{buildroot}%{_datadir}/gcc-%{version}/python/libstdcxx/
 
+# expose plugins for ar (required for lto builds)
+mkdir -p %{buildroot}%{_prefix}/lib/bfd-plugins
+ln -sf %{libsubdir}/liblto_plugin.so %{buildroot}%{_prefix}/lib/bfd-plugins/liblto_plugin.so
+
 # legacy preprocessor
 mkdir -p %{buildroot}/lib
 ln -s %{_bindir}/cpp %{buildroot}/lib/cpp
@@ -790,6 +794,7 @@ rm -rf %{buildroot}/%{libsubdir}/include
 %{libsubdir}/lto1
 %{libsubdir}/lto-wrapper
 %{libsubdir}/liblto_plugin.so*
+%{_prefix}/lib/bfd-plugins/liblto_plugin.so
 %{libsubdir}/include-fixed/*
 %{libsubdir}/include/*.h
 %{libsubdir}/*.a
