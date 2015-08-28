@@ -617,6 +617,32 @@ A foreign function interface is the popular name for the interface that allows c
 %post -n libgo-32bit -p /sbin/ldconfig
 %postun -n libgo-32bit -p /sbin/ldconfig
 
+%if 0%{build_crt}
+%package -n crt
+Summary: crt and libgcc binaries
+License:        GPL-3.0+
+Group:          Development/Building
+Provides: gcc-c++
+Provides: gcc49-c++
+Provides: gcc49
+Provides: cpp49
+
+%description -n crt
+Binaries that can be used by clang for independent build.
+
+%post -n crt
+if [ -f %{_bindir}/gcc ]; then mv %{_bindir}/gcc %{_bindir}/gcc.bak; fi
+if [ -f %{_bindir}/g++ ]; then mv %{_bindir}/g++ %{_bindir}/g++.bak; fi
+ln -s clang $RPM_BUILD_ROOT%{_bindir}/gcc
+ln -s clang++ $RPM_BUILD_ROOT%{_bindir}/g++
+
+%preun -n crt
+rm -rf %{_bindir}/gcc
+rm -rf %{_bindir}/g++
+if [ -f %{_bindir}/gcc.bak ]; then mv %{_bindir}/gcc.bak %{_bindir}/gcc; fi
+if [ -f %{_bindir}/g++.bak ]; then mv %{_bindir}/g++.bak %{_bindir}/g++; fi
+%endif
+
 
 %prep
 %setup -q -n gcc-%{version}
@@ -768,12 +794,19 @@ do
   [ -e %{buildroot}%{libsubdir}/lib$lib.a ] && mv %{buildroot}%{libsubdir}/lib$lib.a %{buildroot}%{libdir}/
   [ -e %{buildroot}%{libsubdir}/lib$lib.so ] && mv %{buildroot}%{libsubdir}/lib$lib.so* %{buildroot}%{libdir}/
 done
+
+%{?build_crt:
+cp %{buildroot}%{libsubdir}/crt* %{buildroot}%{libdir}/
+cp %{buildroot}%{libsubdir}/libgcc.a %{buildroot}%{libdir}/
+}
+
 }
 
 %{?cross:
 rm -rf %{buildroot}/%{libsubdir}/include-fixed
 rm -rf %{buildroot}/%{libsubdir}/include
 }
+
 
 %files
 %defattr(-,root,root)
@@ -990,6 +1023,15 @@ rm -rf %{buildroot}/%{libsubdir}/include
 %defattr(-,root,root)
 %{libsubdir}/32/libstdc++.so.*-gdb.py
 %endif
+}
+
+%{?build_crt:
+%files -n crt
+%defattr(-,root,root)
+%{_libdir}/crt*.o
+%{_libdir}/libgcc_s.so
+%{_libdir}/libgcc.a
+%{_libdir}/libstdc++.so
 }
 
 %changelog
