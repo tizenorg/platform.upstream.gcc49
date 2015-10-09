@@ -34,6 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "opts-diagnostic.h"
 #include "insn-attr-common.h"
 #include "common/common-target.h"
+#include "gcov-io.h"
 
 static void set_Wstrict_aliasing (struct gcc_options *opts, int onoff);
 
@@ -635,6 +636,94 @@ default_options_optimization (struct gcc_options *opts,
 			 lang_mask, handlers, loc, dc);
 }
 
+/* Enable FDO-related flags.  */
+
+static void
+enable_fdo_optimizations (struct gcc_options *opts,
+			  struct gcc_options *opts_set,
+			  int value)
+{
+  if (!opts_set->x_flag_branch_probabilities)
+    opts->x_flag_branch_probabilities = value;
+  if (!opts_set->x_flag_profile_values)
+    opts->x_flag_profile_values = value;
+  if (!opts_set->x_flag_unroll_loops)
+    opts->x_flag_unroll_loops = value;
+  if (!opts_set->x_flag_peel_loops)
+    opts->x_flag_peel_loops = value;
+  if (!opts_set->x_flag_tracer)
+    opts->x_flag_tracer = value;
+  if (!opts_set->x_flag_value_profile_transformations)
+    opts->x_flag_value_profile_transformations = value;
+  if (!opts_set->x_flag_inline_functions)
+    opts->x_flag_inline_functions = value;
+  if (!opts_set->x_flag_ipa_cp)
+    opts->x_flag_ipa_cp = value;
+  if (!opts_set->x_flag_ipa_cp_clone
+      && value && opts->x_flag_ipa_cp)
+    opts->x_flag_ipa_cp_clone = value;
+  if (!opts_set->x_flag_predictive_commoning)
+    opts->x_flag_predictive_commoning = value;
+  if (!opts_set->x_flag_unswitch_loops)
+    opts->x_flag_unswitch_loops = value;
+  if (!opts_set->x_flag_gcse_after_reload)
+    opts->x_flag_gcse_after_reload = value;
+  if (!opts_set->x_flag_tree_loop_vectorize
+      && !opts_set->x_flag_tree_vectorize)
+    opts->x_flag_tree_loop_vectorize = value;
+  if (!opts_set->x_flag_tree_slp_vectorize
+      && !opts_set->x_flag_tree_vectorize)
+    opts->x_flag_tree_slp_vectorize = value;
+  if (!opts_set->x_flag_vect_cost_model)
+    opts->x_flag_vect_cost_model = VECT_COST_MODEL_DYNAMIC;
+  if (!opts_set->x_flag_tree_loop_distribute_patterns)
+    opts->x_flag_tree_loop_distribute_patterns = value;
+}
+
+static void
+maybe_setup_aux_base_name ()
+{
+  /* Set aux_base_name if not already set.  */
+  if (aux_base_name)
+    return;
+  else if (main_input_filename)
+    {
+      char *name = xstrdup (lbasename (main_input_filename));
+      strip_off_ending (name, strlen (name));
+      aux_base_name = name;
+    }
+  else
+    aux_base_name = "gccaux";
+}
+
+static char *
+setup_coverage_filename (const char *basename, struct gcc_options *opts)
+{
+  int len = strlen (basename);
+  int prefix_len = 0;
+  const char *data_prefix = opts->x_profile_data_prefix;
+
+  if (!opts->x_profile_data_prefix && !IS_ABSOLUTE_PATH (basename))
+    data_prefix = getpwd ();
+
+  if (data_prefix)
+    prefix_len = strlen (data_prefix);
+
+  /* Name of da file.  */
+  char *da_file_name = XNEWVEC (char, len + strlen (GCOV_DATA_SUFFIX)
+				+ prefix_len + 2);
+
+  if (data_prefix)
+    {
+      memcpy (da_file_name, data_prefix, prefix_len);
+      da_file_name[prefix_len++] = '/';
+    }
+  memcpy (da_file_name + prefix_len, basename, len);
+  strcpy (da_file_name + prefix_len + len, GCOV_DATA_SUFFIX);
+  return da_file_name;
+}
+
+
 /* After all options at LOC have been read into OPTS and OPTS_SET,
    finalize settings of those options and diagnose incompatible
    combinations.  */
@@ -882,6 +971,25 @@ finish_options (struct gcc_options *opts, struct gcc_options *opts_set,
     error_at (loc,
               "-fsanitize=address and -fsanitize=kernel-address "
               "are incompatible with -fsanitize=thread");
+
+  maybe_setup_aux_base_name ();
+  opts->x_profile_file_name = setup_coverage_filename (aux_base_name, opts);
+  if (opts->x_flag_profile_use)
+    {
+      if (access (opts->x_profile_file_name, F_OK))
+	warning (0, "%qs is not found!", opts->x_profile_file_name);
+      else
+       {
+	 enable_fdo_optimizations (opts, opts_set, true);
+	 if (!opts_set->x_flag_profile_reorder_functions)
+	   opts->x_flag_profile_reorder_functions = true;
+	   /* Indirect call profiling should do all useful transformations
+	      speculative devirtualization does.  */
+	 if (!opts_set->x_flag_devirtualize_speculatively
+	     && opts->x_flag_value_profile_transformations)
+	   opts->x_flag_devirtualize_speculatively = false;
+      }
+    }
 }
 
 #define LEFT_COLUMN	27
@@ -1718,48 +1826,8 @@ common_handle_option (struct gcc_options *opts,
       value = true;
       /* No break here - do -fprofile-use processing. */
     case OPT_fprofile_use:
-      if (!opts_set->x_flag_branch_probabilities)
-	opts->x_flag_branch_probabilities = value;
-      if (!opts_set->x_flag_profile_values)
-	opts->x_flag_profile_values = value;
-      if (!opts_set->x_flag_unroll_loops)
-	opts->x_flag_unroll_loops = value;
-      if (!opts_set->x_flag_peel_loops)
-	opts->x_flag_peel_loops = value;
-      if (!opts_set->x_flag_tracer)
-	opts->x_flag_tracer = value;
-      if (!opts_set->x_flag_value_profile_transformations)
-	opts->x_flag_value_profile_transformations = value;
-      if (!opts_set->x_flag_inline_functions)
-	opts->x_flag_inline_functions = value;
-      if (!opts_set->x_flag_ipa_cp)
-	opts->x_flag_ipa_cp = value;
-      if (!opts_set->x_flag_ipa_cp_clone
-	  && value && opts->x_flag_ipa_cp)
-	opts->x_flag_ipa_cp_clone = value;
-      if (!opts_set->x_flag_predictive_commoning)
-	opts->x_flag_predictive_commoning = value;
-      if (!opts_set->x_flag_unswitch_loops)
-	opts->x_flag_unswitch_loops = value;
-      if (!opts_set->x_flag_gcse_after_reload)
-	opts->x_flag_gcse_after_reload = value;
-      if (!opts_set->x_flag_tree_loop_vectorize
-          && !opts_set->x_flag_tree_vectorize)
-	opts->x_flag_tree_loop_vectorize = value;
-      if (!opts_set->x_flag_tree_slp_vectorize
-          && !opts_set->x_flag_tree_vectorize)
-	opts->x_flag_tree_slp_vectorize = value;
-      if (!opts_set->x_flag_vect_cost_model)
-	opts->x_flag_vect_cost_model = VECT_COST_MODEL_DYNAMIC;
-      if (!opts_set->x_flag_tree_loop_distribute_patterns)
-	opts->x_flag_tree_loop_distribute_patterns = value;
-      if (!opts_set->x_flag_profile_reorder_functions)
-	opts->x_flag_profile_reorder_functions = value;
-      /* Indirect call profiling should do all useful transformations
- 	 speculative devirtualization does.  */
-      if (!opts_set->x_flag_devirtualize_speculatively
-	  && opts->x_flag_value_profile_transformations)
-	opts->x_flag_devirtualize_speculatively = false;
+      /* Deferred until we know if we really need to enable PGO - related
+         optimizations.  */
       break;
 
     case OPT_fprofile_generate_:

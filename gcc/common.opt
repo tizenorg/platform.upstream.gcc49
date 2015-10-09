@@ -189,6 +189,9 @@ const char *main_input_basename
 Variable
 int main_input_baselength
 
+Variable
+const char *profile_file_name
+
 ; Which options have been printed by --help.
 Variable
 char *help_printed
