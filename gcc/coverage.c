@@ -1135,7 +1135,8 @@ void
 coverage_init (const char *filename)
 {
   int len = strlen (filename);
-  int prefix_len = 0;
+  da_file_name = XNEWVEC (char, len + 1);
+  memcpy (da_file_name, filename, len);
 
   /* Since coverage_init is invoked very early, before the pass
      manager, we need to set up the dumping explicitly. This is
@@ -1143,24 +1144,6 @@ coverage_init (const char *filename)
   int profile_pass_num =
     g->get_passes ()->get_pass_profile ()->static_pass_number;
   g->get_dumps ()->dump_start (profile_pass_num, NULL);
-
-  if (!profile_data_prefix && !IS_ABSOLUTE_PATH (filename))
-    profile_data_prefix = getpwd ();
-
-  if (profile_data_prefix)
-    prefix_len = strlen (profile_data_prefix);
-
-  /* Name of da file.  */
-  da_file_name = XNEWVEC (char, len + strlen (GCOV_DATA_SUFFIX)
-			  + prefix_len + 2);
-
-  if (profile_data_prefix)
-    {
-      memcpy (da_file_name, profile_data_prefix, prefix_len);
-      da_file_name[prefix_len++] = '/';
-    }
-  memcpy (da_file_name + prefix_len, filename, len);
-  strcpy (da_file_name + prefix_len + len, GCOV_DATA_SUFFIX);
 
   bbg_file_stamp = local_tick;
   
