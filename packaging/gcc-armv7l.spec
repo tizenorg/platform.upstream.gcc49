@@ -52,7 +52,10 @@
 
 %define target_arch %{target_cpu}-tizen-linux-gnu%{?target_abi}
 %define libdir %{!?cross:%{_libdir}}%{?cross:%{_prefix}/lib%{?aarch64:64}}
-%define libsubdir %{libdir}/gcc/%{target_arch}/%{version}
+# this is needed until we can change upstream/4.9.2 tag in git
+%define real_version 4.9.2
+%define libsubdir %{libdir}/gcc/%{target_arch}/%{real_version}
+#%%define libsubdir %%{libdir}/gcc/%%{target_arch}/%%{version}
 
 Name:         gcc%{?cross:-%{cross}}
 # With generated files in src we could drop the following
@@ -747,7 +750,7 @@ find %{buildroot}/%{libsubdir} -name "*.la" -exec rm -rf {} +
 
 %{!?cross:
 ln -s gcc %{buildroot}%{_bindir}/cc
-mv %{buildroot}%{libsubdir}/libstdc++.so*-gdb.py %{buildroot}%{_datadir}/gcc-%{version}/python/libstdcxx/
+mv %{buildroot}%{libsubdir}/libstdc++.so*-gdb.py %{buildroot}%{_datadir}/gcc-%{real_version}/python/libstdcxx/
 
 # expose plugins for ar (required for lto builds)
 mkdir -p %{buildroot}%{_prefix}/lib/bfd-plugins
@@ -789,7 +792,7 @@ rm -rf %{buildroot}/%{libsubdir}/include
 %{_bindir}/gcc-nm
 %{_bindir}/gcc-ranlib
 %{_bindir}/%{target_arch}-gcc
-%{_bindir}/%{target_arch}-gcc-%{version}
+%{_bindir}/%{target_arch}-gcc-%{real_version}
 %{_bindir}/%{target_arch}-gcc-ar
 %{_bindir}/%{target_arch}-gcc-nm
 %{_bindir}/%{target_arch}-gcc-ranlib
@@ -831,7 +834,7 @@ rm -rf %{buildroot}/%{libsubdir}/include
 %{libdir}/libstdc++.a
 %{libdir}/libsupc++.a
 %{libsubdir}/include/c++/*
-%{_datadir}/gcc-%{version}/python/libstdcxx/*
+%{_datadir}/gcc-%{real_version}/python/libstdcxx/*
 
 %files -n libgcc
 %defattr(-,root,root)
