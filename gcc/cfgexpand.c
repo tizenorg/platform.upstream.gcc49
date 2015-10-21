@@ -1292,7 +1292,12 @@ expand_one_var (tree var, bool toplevel, bool really_expand)
   else if (TREE_CODE (var) == VAR_DECL && DECL_HARD_REGISTER (var))
     {
       if (really_expand)
-        expand_one_hard_reg_var (var);
+	{
+	  expand_one_hard_reg_var (var);
+	  if (!DECL_HARD_REGISTER (var))
+	    /* Invalid register specification.  */
+	    expand_one_error_var (var);
+	}
     }
   else if (use_register_for_decl (var))
     {
@@ -4545,7 +4550,6 @@ expand_debug_expr (tree exp)
     case REDUC_MIN_EXPR:
     case REDUC_PLUS_EXPR:
     case VEC_COND_EXPR:
-    case VEC_LSHIFT_EXPR:
     case VEC_PACK_FIX_TRUNC_EXPR:
     case VEC_PACK_SAT_EXPR:
     case VEC_PACK_TRUNC_EXPR:

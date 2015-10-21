@@ -1,12 +1,3 @@
-2015-06-26  Release Manager
-
-	* GCC 4.9.3 released.
-
-2015-03-16  Eric Botcazou  <ebotcazou@adacore.com>
-
-	* gcc-interface/utils2.c (gnat_invariant_expr): Return null if the type
-	of the expression ends up being composite.
-
 2015-02-08  Eric Botcazou  <ebotcazou@adacore.com>
 
 	* gcc-interface/decl.c (is_cplusplus_method): Use Is_Primitive flag to

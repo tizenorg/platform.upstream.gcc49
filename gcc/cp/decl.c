@@ -10448,7 +10448,7 @@ grokdeclarator (const cp_declarator *declarator,
       }
     else if (decl_context == FIELD)
       {
-	if (!staticp && !friendp && TREE_CODE (type) != METHOD_TYPE
+	if (!staticp && TREE_CODE (type) != METHOD_TYPE
 	    && type_uses_auto (type))
 	  {
 	    error ("non-static data member declared %<auto%>");
@@ -13667,19 +13667,13 @@ begin_destructor_body (void)
       initialize_vtbl_ptrs (current_class_ptr);
       finish_compound_stmt (compound_stmt);
 
-      if (flag_lifetime_dse)
-	{
-	  /* Insert a cleanup to let the back end know that the object is dead
-	     when we exit the destructor, either normally or via exception.  */
-	  tree btype = CLASSTYPE_AS_BASE (current_class_type);
-	  tree clobber = build_constructor (btype, NULL);
-	  TREE_THIS_VOLATILE (clobber) = true;
-	  tree bref = build_nop (build_reference_type (btype),
-				 current_class_ptr);
-	  bref = convert_from_reference (bref);
-	  tree exprstmt = build2 (MODIFY_EXPR, btype, bref, clobber);
-	  finish_decl_cleanup (NULL_TREE, exprstmt);
-	}
+      /* Insert a cleanup to let the back end know that the object is dead
+	 when we exit the destructor, either normally or via exception.  */
+      tree clobber = build_constructor (current_class_type, NULL);
+      TREE_THIS_VOLATILE (clobber) = true;
+      tree exprstmt = build2 (MODIFY_EXPR, current_class_type,
+			      current_class_ref, clobber);
+      finish_decl_cleanup (NULL_TREE, exprstmt);
 
       /* And insert cleanups for our bases and members so that they
 	 will be properly destroyed if we throw.  */

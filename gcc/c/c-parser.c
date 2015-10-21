@@ -4210,7 +4210,8 @@ c_parser_initelt (c_parser *parser, struct obstack * braced_init_obstack)
 		  init.original_type = NULL;
 		  c_parser_error (parser, "expected identifier");
 		  c_parser_skip_until_found (parser, CPP_COMMA, NULL);
-		  process_init_element (init, false, braced_init_obstack);
+		  process_init_element (input_location, init, false,
+					braced_init_obstack);
 		  return;
 		}
 	    }
@@ -4342,7 +4343,8 @@ c_parser_initelt (c_parser *parser, struct obstack * braced_init_obstack)
 		  init.original_type = NULL;
 		  c_parser_error (parser, "expected %<=%>");
 		  c_parser_skip_until_found (parser, CPP_COMMA, NULL);
-		  process_init_element (init, false, braced_init_obstack);
+		  process_init_element (input_location, init, false,
+					braced_init_obstack);
 		  return;
 		}
 	    }
@@ -4363,18 +4365,19 @@ c_parser_initval (c_parser *parser, struct c_expr *after,
 {
   struct c_expr init;
   gcc_assert (!after || c_dialect_objc ());
+  location_t loc = c_parser_peek_token (parser)->location;
+
   if (c_parser_next_token_is (parser, CPP_OPEN_BRACE) && !after)
     init = c_parser_braced_init (parser, NULL_TREE, true);
   else
     {
-      location_t loc = c_parser_peek_token (parser)->location;
       init = c_parser_expr_no_commas (parser, after);
       if (init.value != NULL_TREE
 	  && TREE_CODE (init.value) != STRING_CST
 	  && TREE_CODE (init.value) != COMPOUND_LITERAL_EXPR)
 	init = convert_lvalue_to_rvalue (loc, init, true, true);
     }
-  process_init_element (init, false, braced_init_obstack);
+  process_init_element (loc, init, false, braced_init_obstack);
 }
 
 /* Parse a compound statement (possibly a function body) (C90 6.6.2,
@@ -6103,8 +6106,8 @@ c_parser_binary_expression (c_parser *parser, struct c_expr *after,
     if (__builtin_expect (omp_atomic_lhs != NULL_TREE, 0) && sp == 1	      \
 	&& c_parser_peek_token (parser)->type == CPP_SEMICOLON		      \
 	&& ((1 << stack[sp].prec)					      \
-	    & ((1 << PREC_BITOR) | (1 << PREC_BITXOR) | (1 << PREC_BITAND)    \
-	       | (1 << PREC_SHIFT) | (1 << PREC_ADD) | (1 << PREC_MULT)))     \
+	    & (1 << (PREC_BITOR | PREC_BITXOR | PREC_BITAND | PREC_SHIFT      \
+		     | PREC_ADD | PREC_MULT)))				      \
 	&& stack[sp].op != TRUNC_MOD_EXPR				      \
 	&& stack[0].expr.value != error_mark_node			      \
 	&& stack[1].expr.value != error_mark_node			      \
@@ -11423,7 +11426,6 @@ restart:
 	    {
 	    case MULT_EXPR:
 	    case TRUNC_DIV_EXPR:
-	    case RDIV_EXPR:
 	    case PLUS_EXPR:
 	    case MINUS_EXPR:
 	    case LSHIFT_EXPR:

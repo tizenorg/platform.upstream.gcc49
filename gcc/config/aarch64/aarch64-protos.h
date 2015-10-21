@@ -108,9 +108,22 @@ enum aarch64_symbol_type
    cost models and vectors for address cost calculations, register
    move costs and memory move costs.  */
 
+/* Scaled addressing modes can vary cost depending on the mode of the
+   value to be loaded/stored.  QImode values cannot use scaled
+   addressing modes.  */
+
+struct scale_addr_mode_cost
+{
+  const int hi;
+  const int si;
+  const int di;
+  const int ti;
+};
+
 /* Additional cost for addresses.  */
 struct cpu_addrcost_table
 {
+  const struct scale_addr_mode_cost addr_scale_costs;
   const int pre_modify;
   const int post_modify;
   const int register_offset;
@@ -160,13 +173,16 @@ struct tune_params
 };
 
 HOST_WIDE_INT aarch64_initial_elimination_offset (unsigned, unsigned);
+int aarch64_get_condition_code (rtx);
 bool aarch64_bitmask_imm (HOST_WIDE_INT val, enum machine_mode);
 bool aarch64_cannot_change_mode_class (enum machine_mode,
 				       enum machine_mode,
 				       enum reg_class);
 enum aarch64_symbol_type
 aarch64_classify_symbolic_expression (rtx, enum aarch64_symbol_context);
+bool aarch64_const_vec_all_same_int_p (rtx, HOST_WIDE_INT);
 bool aarch64_constant_address_p (rtx);
+bool aarch64_expand_movmem (rtx *);
 bool aarch64_float_const_zero_rtx_p (rtx);
 bool aarch64_function_arg_regno_p (unsigned);
 bool aarch64_gen_movmemqi (rtx *);
@@ -175,15 +191,20 @@ bool aarch64_is_extend_from_extract (enum machine_mode, rtx, rtx);
 bool aarch64_is_long_call_p (rtx);
 bool aarch64_label_mentioned_p (rtx);
 bool aarch64_legitimate_pic_operand_p (rtx);
+bool aarch64_modes_tieable_p (enum machine_mode mode1,
+			      enum machine_mode mode2);
 bool aarch64_move_imm (HOST_WIDE_INT, enum machine_mode);
 bool aarch64_mov_operand_p (rtx, enum aarch64_symbol_context,
 			    enum machine_mode);
+bool aarch64_offset_7bit_signed_scaled_p (enum machine_mode, HOST_WIDE_INT);
 char *aarch64_output_scalar_simd_mov_immediate (rtx, enum machine_mode);
 char *aarch64_output_simd_mov_immediate (rtx, enum machine_mode, unsigned);
 bool aarch64_pad_arg_upward (enum machine_mode, const_tree);
 bool aarch64_pad_reg_upward (enum machine_mode, const_tree, bool);
 bool aarch64_regno_ok_for_base_p (int, bool);
 bool aarch64_regno_ok_for_index_p (int, bool);
+bool aarch64_simd_check_vect_par_cnst_half (rtx op, enum machine_mode mode,
+					    bool high);
 bool aarch64_simd_imm_scalar_p (rtx x, enum machine_mode mode);
 bool aarch64_simd_imm_zero_p (rtx, enum machine_mode);
 bool aarch64_simd_scalar_immediate_valid_for_move (rtx, enum machine_mode);
@@ -195,11 +216,13 @@ bool aarch64_uimm12_shift (HOST_WIDE_INT);
 const char *aarch64_output_casesi (rtx *);
 const char *aarch64_rewrite_selected_cpu (const char *name);
 
-enum aarch64_symbol_type aarch64_classify_symbol (rtx, rtx,
+enum aarch64_symbol_type aarch64_classify_symbol (rtx,
 						  enum aarch64_symbol_context);
 enum aarch64_symbol_type aarch64_classify_tls_symbol (rtx);
 enum reg_class aarch64_regno_regclass (unsigned);
 int aarch64_asm_preferred_eh_data_format (int, int);
+enum machine_mode aarch64_hard_regno_caller_save_mode (unsigned, unsigned,
+						       enum machine_mode);
 int aarch64_hard_regno_mode_ok (unsigned, enum machine_mode);
 int aarch64_hard_regno_nregs (unsigned, enum machine_mode);
 int aarch64_simd_attr_length_move (rtx);
@@ -291,4 +314,5 @@ extern bool aarch64_madd_needs_nop (rtx);
 extern void aarch64_final_prescan_insn (rtx);
 extern bool
 aarch64_expand_vec_perm_const (rtx target, rtx op0, rtx op1, rtx sel);
+void aarch64_atomic_assign_expand_fenv (tree *, tree *, tree *);
 #endif /* GCC_AARCH64_PROTOS_H */

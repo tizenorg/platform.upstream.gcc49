@@ -1389,7 +1389,8 @@ get_aligned_mem (rtx ref, rtx *paligned_mem, rtx *pbitnum)
 
   gcc_assert (MEM_P (ref));
 
-  if (reload_in_progress)
+  if (reload_in_progress
+      && ! memory_address_p (GET_MODE (ref), XEXP (ref, 0)))
     {
       base = find_replacement (&XEXP (ref, 0));
       gcc_assert (memory_address_p (GET_MODE (ref), base));
@@ -1434,9 +1435,11 @@ get_unaligned_address (rtx ref)
 
   gcc_assert (MEM_P (ref));
 
-  if (reload_in_progress)
+  if (reload_in_progress
+      && ! memory_address_p (GET_MODE (ref), XEXP (ref, 0)))
     {
       base = find_replacement (&XEXP (ref, 0));
+
       gcc_assert (memory_address_p (GET_MODE (ref), base));
     }
   else

@@ -1892,9 +1892,9 @@ vect_analyze_loop (struct loop *loop)
 
    Output:
    REDUC_CODE - the corresponding tree-code to be used to reduce the
-      vector of partial results into a single scalar result (which
-      will also reside in a vector) or ERROR_MARK if the operation is
-      a supported reduction operation, but does not have such tree-code.
+      vector of partial results into a single scalar result, or ERROR_MARK
+      if the operation is a supported reduction operation, but does not have
+      such a tree-code.
 
    Return FALSE if CODE currently cannot be vectorized as reduction.  */
 
@@ -2620,13 +2620,12 @@ vect_force_simple_reduction (loop_vec_info loop_info, gimple phi,
 
 /* Calculate the cost of one scalar iteration of the loop.  */
 int
-vect_get_single_scalar_iteration_cost (loop_vec_info loop_vinfo,
-				       stmt_vector_for_cost *scalar_cost_vec)
+vect_get_single_scalar_iteration_cost (loop_vec_info loop_vinfo)
 {
   struct loop *loop = LOOP_VINFO_LOOP (loop_vinfo);
   basic_block *bbs = LOOP_VINFO_BBS (loop_vinfo);
   int nbbs = loop->num_nodes, factor, scalar_single_iter_cost = 0;
-  int innerloop_iters, i;
+  int innerloop_iters, i, stmt_cost;
 
   /* Count statements in scalar loop.  Using this as scalar cost for a single
      iteration for now.
@@ -2667,20 +2666,17 @@ vect_get_single_scalar_iteration_cost (loop_vec_info loop_vinfo,
 	      && !STMT_VINFO_IN_PATTERN_P (stmt_info))
             continue;
 
-	  vect_cost_for_stmt kind;
           if (STMT_VINFO_DATA_REF (vinfo_for_stmt (stmt)))
             {
               if (DR_IS_READ (STMT_VINFO_DATA_REF (vinfo_for_stmt (stmt))))
-               kind = scalar_load;
+               stmt_cost = vect_get_stmt_cost (scalar_load);
              else
-               kind = scalar_store;
+               stmt_cost = vect_get_stmt_cost (scalar_store);
             }
           else
-            kind = scalar_stmt;
+            stmt_cost = vect_get_stmt_cost (scalar_stmt);
 
-	  scalar_single_iter_cost
-	    += record_stmt_cost (scalar_cost_vec, factor, kind,
-				 NULL, 0, vect_prologue);
+          scalar_single_iter_cost += stmt_cost * factor;
         }
     }
   return scalar_single_iter_cost;
@@ -2690,7 +2686,7 @@ vect_get_single_scalar_iteration_cost (loop_vec_info loop_vinfo,
 int
 vect_get_known_peeling_cost (loop_vec_info loop_vinfo, int peel_iters_prologue,
                              int *peel_iters_epilogue,
-                             stmt_vector_for_cost *scalar_cost_vec,
+                             int scalar_single_iter_cost,
 			     stmt_vector_for_cost *prologue_cost_vec,
 			     stmt_vector_for_cost *epilogue_cost_vec)
 {
@@ -2707,10 +2703,8 @@ vect_get_known_peeling_cost (loop_vec_info loop_vinfo, int peel_iters_prologue,
 
       /* If peeled iterations are known but number of scalar loop
          iterations are unknown, count a taken branch per peeled loop.  */
-      retval = record_stmt_cost (prologue_cost_vec, 1, cond_branch_taken,
+      retval = record_stmt_cost (prologue_cost_vec, 2, cond_branch_taken,
 				 NULL, 0, vect_prologue);
-      retval = record_stmt_cost (prologue_cost_vec, 1, cond_branch_taken,
-				 NULL, 0, vect_epilogue);
     }
   else
     {
@@ -2724,21 +2718,14 @@ vect_get_known_peeling_cost (loop_vec_info loop_vinfo, int peel_iters_prologue,
         *peel_iters_epilogue = vf;
     }
 
-  stmt_info_for_cost *si;
-  int j;
   if (peel_iters_prologue)
-    FOR_EACH_VEC_ELT (*scalar_cost_vec, j, si)
-      retval += record_stmt_cost (prologue_cost_vec,
-				  si->count * peel_iters_prologue,
-				  si->kind, NULL, si->misalign,
-				  vect_prologue);
+    retval += record_stmt_cost (prologue_cost_vec,
+				peel_iters_prologue * scalar_single_iter_cost,
+				scalar_stmt, NULL, 0, vect_prologue);
   if (*peel_iters_epilogue)
-    FOR_EACH_VEC_ELT (*scalar_cost_vec, j, si)
-      retval += record_stmt_cost (epilogue_cost_vec,
-				  si->count * *peel_iters_epilogue,
-				  si->kind, NULL, si->misalign,
-				  vect_epilogue);
-
+    retval += record_stmt_cost (epilogue_cost_vec,
+				*peel_iters_epilogue * scalar_single_iter_cost,
+				scalar_stmt, NULL, 0, vect_epilogue);
   return retval;
 }
 
@@ -2813,9 +2800,7 @@ vect_estimate_min_profitable_iters (loop_vec_info loop_vinfo,
      TODO: Consider assigning different costs to different scalar
      statements.  */
 
-  auto_vec<stmt_info_for_cost> scalar_cost_vec;
-  scalar_single_iter_cost
-     = vect_get_single_scalar_iteration_cost (loop_vinfo, &scalar_cost_vec);
+  scalar_single_iter_cost = vect_get_single_scalar_iteration_cost (loop_vinfo);
 
   /* Add additional cost for the peeled instructions in prologue and epilogue
      loop.
@@ -2843,29 +2828,18 @@ vect_estimate_min_profitable_iters (loop_vec_info loop_vinfo,
          branch per peeled loop. Even if scalar loop iterations are known,
          vector iterations are not known since peeled prologue iterations are
          not known. Hence guards remain the same.  */
-      (void) add_stmt_cost (target_cost_data, 1, cond_branch_taken,
+      (void) add_stmt_cost (target_cost_data, 2, cond_branch_taken,
 			    NULL, 0, vect_prologue);
-      (void) add_stmt_cost (target_cost_data, 1, cond_branch_not_taken,
+      (void) add_stmt_cost (target_cost_data, 2, cond_branch_not_taken,
 			    NULL, 0, vect_prologue);
-      (void) add_stmt_cost (target_cost_data, 1, cond_branch_taken,
-			    NULL, 0, vect_epilogue);
-      (void) add_stmt_cost (target_cost_data, 1, cond_branch_not_taken,
-			    NULL, 0, vect_epilogue);
-      stmt_info_for_cost *si;
-      int j;
-      FOR_EACH_VEC_ELT (scalar_cost_vec, j, si)
-	{
-	  struct _stmt_vec_info *stmt_info
-	    = si->stmt ? vinfo_for_stmt (si->stmt) : NULL;
-	  (void) add_stmt_cost (target_cost_data,
-				si->count * peel_iters_prologue,
-				si->kind, stmt_info, si->misalign,
-				vect_prologue);
-	  (void) add_stmt_cost (target_cost_data,
-				si->count * peel_iters_epilogue,
-				si->kind, stmt_info, si->misalign,
-				vect_epilogue);
-	}
+      /* FORNOW: Don't attempt to pass individual scalar instructions to
+	 the model; just assume linear cost for scalar iterations.  */
+      (void) add_stmt_cost (target_cost_data,
+			    peel_iters_prologue * scalar_single_iter_cost,
+			    scalar_stmt, NULL, 0, vect_prologue);
+      (void) add_stmt_cost (target_cost_data, 
+			    peel_iters_epilogue * scalar_single_iter_cost,
+			    scalar_stmt, NULL, 0, vect_epilogue);
     }
   else
     {
@@ -2880,7 +2854,7 @@ vect_estimate_min_profitable_iters (loop_vec_info loop_vinfo,
 
       (void) vect_get_known_peeling_cost (loop_vinfo, peel_iters_prologue,
 					  &peel_iters_epilogue,
-					  &scalar_cost_vec,
+					  scalar_single_iter_cost,
 					  &prologue_cost_vec,
 					  &epilogue_cost_vec);
 
@@ -4193,6 +4167,7 @@ vect_create_epilog_for_reduction (vec<tree> vect_defs, gimple stmt,
   if (reduc_code != ERROR_MARK && !slp_reduc)
     {
       tree tmp;
+      tree vec_elem_type;
 
       /*** Case 1:  Create:
            v_out2 = reduc_expr <v_out1>  */
@@ -4201,14 +4176,26 @@ vect_create_epilog_for_reduction (vec<tree> vect_defs, gimple stmt,
         dump_printf_loc (MSG_NOTE, vect_location,
 			 "Reduce using direct vector reduction.\n");
 
-      vec_dest = vect_create_destination_var (scalar_dest, vectype);
-      tmp = build1 (reduc_code, vectype, new_phi_result);
-      epilog_stmt = gimple_build_assign (vec_dest, tmp);
-      new_temp = make_ssa_name (vec_dest, epilog_stmt);
+      vec_elem_type = TREE_TYPE (TREE_TYPE (new_phi_result));
+      if (!useless_type_conversion_p (scalar_type, vec_elem_type))
+	{
+          tree tmp_dest =
+	      vect_create_destination_var (scalar_dest, vec_elem_type);
+	  tmp = build1 (reduc_code, vec_elem_type, new_phi_result);
+	  epilog_stmt = gimple_build_assign (tmp_dest, tmp);
+	  new_temp = make_ssa_name (tmp_dest, epilog_stmt);
+	  gimple_assign_set_lhs (epilog_stmt, new_temp);
+	  gsi_insert_before (&exit_gsi, epilog_stmt, GSI_SAME_STMT);
+
+	  tmp = build1 (NOP_EXPR, scalar_type, new_temp);
+	}
+      else
+	tmp = build1 (reduc_code, scalar_type, new_phi_result);
+      epilog_stmt = gimple_build_assign (new_scalar_dest, tmp);
+      new_temp = make_ssa_name (new_scalar_dest, epilog_stmt);
       gimple_assign_set_lhs (epilog_stmt, new_temp);
       gsi_insert_before (&exit_gsi, epilog_stmt, GSI_SAME_STMT);
-
-      extract_scalar_result = true;
+      scalar_results.safe_push (new_temp);
     }
   else
     {
@@ -4547,10 +4534,7 @@ vect_finalize_reduction:
                            && !STMT_VINFO_LIVE_P (exit_phi_vinfo))
                           || double_reduc);
 
-	      if (double_reduc)
-		STMT_VINFO_VEC_STMT (exit_phi_vinfo) = inner_phi;
-	      else
-		STMT_VINFO_VEC_STMT (exit_phi_vinfo) = epilog_stmt;
+              STMT_VINFO_VEC_STMT (exit_phi_vinfo) = epilog_stmt;
               if (!double_reduc
                   || STMT_VINFO_DEF_TYPE (exit_phi_vinfo)
                       != vect_double_reduction_def)
@@ -4930,12 +4914,6 @@ vectorizable_reduction (gimple stmt, gimple_stmt_iterator *gsi,
   if (!vectype_in)
     vectype_in = tem;
   gcc_assert (is_simple_use);
-  if (!found_nested_cycle_def)
-    reduc_def_stmt = def_stmt;
-
-  if (reduc_def_stmt && gimple_code (reduc_def_stmt) != GIMPLE_PHI)
-    return false;
-
   if (!(dt == vect_reduction_def
 	|| dt == vect_nested_cycle
 	|| ((dt == vect_internal_def || dt == vect_external_def
@@ -4948,7 +4926,10 @@ vectorizable_reduction (gimple stmt, gimple_stmt_iterator *gsi,
       gcc_assert (orig_stmt);
       return false;
     }
+  if (!found_nested_cycle_def)
+    reduc_def_stmt = def_stmt;
 
+  gcc_assert (gimple_code (reduc_def_stmt) == GIMPLE_PHI);
   if (orig_stmt)
     gcc_assert (orig_stmt == vect_is_simple_reduction (loop_vinfo,
                                                        reduc_def_stmt,
@@ -5120,15 +5101,17 @@ vectorizable_reduction (gimple stmt, gimple_stmt_iterator *gsi,
 
           epilog_reduc_code = ERROR_MARK;
         }
-
-      if (reduc_optab
-          && optab_handler (reduc_optab, vec_mode) == CODE_FOR_nothing)
+      else if (optab_handler (reduc_optab, vec_mode) == CODE_FOR_nothing)
         {
-          if (dump_enabled_p ())
-	    dump_printf_loc (MSG_MISSED_OPTIMIZATION, vect_location,
-			     "reduc op not supported by target.\n");
+          optab = scalar_reduc_to_vector (reduc_optab, vectype_out);
+          if (optab_handler (optab, vec_mode) == CODE_FOR_nothing)
+            {
+              if (dump_enabled_p ())
+	        dump_printf_loc (MSG_MISSED_OPTIMIZATION, vect_location,
+				 "reduc op not supported by target.\n");
 
-          epilog_reduc_code = ERROR_MARK;
+	      epilog_reduc_code = ERROR_MARK;
+	    }
         }
     }
   else

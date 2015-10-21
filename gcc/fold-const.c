@@ -1446,8 +1446,7 @@ const_binop (enum tree_code code, tree arg1, tree arg2)
       int count = TYPE_VECTOR_SUBPARTS (type), i;
       tree *elts = XALLOCAVEC (tree, count);
 
-      if (code == VEC_LSHIFT_EXPR
-	  || code == VEC_RSHIFT_EXPR)
+      if (code == VEC_RSHIFT_EXPR)
 	{
 	  if (!tree_fits_uhwi_p (arg2))
 	    return NULL_TREE;
@@ -1459,11 +1458,10 @@ const_binop (enum tree_code code, tree arg1, tree arg2)
 	  if (shiftc >= outerc || (shiftc % innerc) != 0)
 	    return NULL_TREE;
 	  int offset = shiftc / innerc;
-	  /* The direction of VEC_[LR]SHIFT_EXPR is endian dependent.
-	     For reductions, compiler emits VEC_RSHIFT_EXPR always,
-	     for !BYTES_BIG_ENDIAN picks first vector element, but
-	     for BYTES_BIG_ENDIAN last element from the vector.  */
-	  if ((code == VEC_RSHIFT_EXPR) ^ (!BYTES_BIG_ENDIAN))
+	  /* The direction of VEC_RSHIFT_EXPR is endian dependent.
+	     For reductions, if !BYTES_BIG_ENDIAN then compiler picks first
+	     vector element, but last element if BYTES_BIG_ENDIAN.  */
+	  if (BYTES_BIG_ENDIAN)
 	    offset = -offset;
 	  tree zero = build_zero_cst (TREE_TYPE (type));
 	  for (i = 0; i < count; i++)
@@ -7941,11 +7939,6 @@ fold_unary_loc (location_t loc, enum tree_code code, tree type, tree op0)
 	return fold_convert_loc (loc, type, op0);
       return NULL_TREE;
 
-    case NON_LVALUE_EXPR:
-      if (!maybe_lvalue_p (op0))
-	return fold_convert_loc (loc, type, op0);
-      return NULL_TREE;
-
     CASE_CONVERT:
     case FLOAT_EXPR:
     case FIX_TRUNC_EXPR:
@@ -8011,12 +8004,16 @@ fold_unary_loc (location_t loc, enum tree_code code, tree type, tree op0)
 	     (for integers).  Avoid this if the final type is a pointer since
 	     then we sometimes need the middle conversion.  Likewise if the
 	     final type has a precision not equal to the size of its mode.  */
-	  if (((inter_int && inside_int) || (inter_float && inside_float))
-	      && (final_int || final_float)
+	  if (((inter_int && inside_int)
+	       || (inter_float && inside_float)
+	       || (inter_vec && inside_vec))
 	      && inter_prec >= inside_prec
-	      && (inter_float || inter_unsignedp == inside_unsignedp)
+	      && (inter_float || inter_vec
+		  || inter_unsignedp == inside_unsignedp)
 	      && ! (final_prec != GET_MODE_PRECISION (TYPE_MODE (type))
-		    && TYPE_MODE (type) == TYPE_MODE (inter_type)))
+		    && TYPE_MODE (type) == TYPE_MODE (inter_type))
+	      && ! final_ptr
+	      && (! final_vec || inter_prec == inside_prec))
 	    return fold_build1_loc (loc, code, type, TREE_OPERAND (op0, 0));
 
 	  /* If we have a sign-extension of a zero-extended value, we can
@@ -8205,7 +8202,7 @@ fold_unary_loc (location_t loc, enum tree_code code, tree type, tree op0)
 	    }
 	}
 
-      tem = fold_convert_const (code, type, arg0);
+      tem = fold_convert_const (code, type, op0);
       return tem ? tem : NULL_TREE;
 
     case ADDR_SPACE_CONVERT_EXPR:
@@ -8325,14 +8322,9 @@ fold_unary_loc (location_t loc, enum tree_code code, tree type, tree op0)
 		    && integer_onep (TREE_OPERAND (arg0, 1)))
 		   || (TREE_CODE (arg0) == PLUS_EXPR
 		       && integer_all_onesp (TREE_OPERAND (arg0, 1)))))
-	{
-	  /* Perform the negation in ARG0's type and only then convert
-	     to TYPE as to avoid introducing undefined behavior.  */
-	  tree t = fold_build1_loc (loc, NEGATE_EXPR,
-				    TREE_TYPE (TREE_OPERAND (arg0, 0)),
-				    TREE_OPERAND (arg0, 0));
-	  return fold_convert_loc (loc, type, t);
-	}
+	return fold_build1_loc (loc, NEGATE_EXPR, type,
+			    fold_convert_loc (loc, type,
+					      TREE_OPERAND (arg0, 0)));
       /* Convert ~(X ^ Y) to ~X ^ Y or X ^ ~Y if ~X or ~Y simplify.  */
       else if (TREE_CODE (arg0) == BIT_XOR_EXPR
 	       && (tem = fold_unary_loc (loc, BIT_NOT_EXPR, type,
@@ -8530,12 +8522,13 @@ fold_unary_loc (location_t loc, enum tree_code code, tree type, tree op0)
     case REDUC_MAX_EXPR:
     case REDUC_PLUS_EXPR:
       {
-	unsigned int nelts = TYPE_VECTOR_SUBPARTS (type), i;
+	unsigned int nelts, i;
 	tree *elts;
 	enum tree_code subcode;
 
 	if (TREE_CODE (op0) != VECTOR_CST)
 	  return NULL_TREE;
+        nelts = TYPE_VECTOR_SUBPARTS (TREE_TYPE (op0));
 
 	elts = XALLOCAVEC (tree, nelts);
 	if (!vec_cst_ctor_to_array (op0, elts))
@@ -8554,10 +8547,9 @@ fold_unary_loc (location_t loc, enum tree_code code, tree type, tree op0)
 	    elts[0] = const_binop (subcode, elts[0], elts[i]);
 	    if (elts[0] == NULL_TREE || !CONSTANT_CLASS_P (elts[0]))
 	      return NULL_TREE;
-	    elts[i] = build_zero_cst (TREE_TYPE (type));
 	  }
 
-	return build_vector (type, elts);
+	return elts[0];
       }
 
     default:
@@ -10817,8 +10809,8 @@ fold_binary_loc (location_t loc,
 
 	      /* Don't introduce overflows through reassociation.  */
 	      if (!any_overflows
-		  && ((lit0 && TREE_OVERFLOW_P (lit0))
-		      || (minus_lit0 && TREE_OVERFLOW_P (minus_lit0))))
+		  && ((lit0 && TREE_OVERFLOW (lit0))
+		      || (minus_lit0 && TREE_OVERFLOW (minus_lit0))))
 		return NULL_TREE;
 
 	      if (minus_lit0)

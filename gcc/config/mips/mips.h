@@ -1163,22 +1163,6 @@ struct mips_cpu_info {
 #define SUBTARGET_ASM_SPEC ""
 #endif
 
-/* FP_ASM_SPEC represents the floating-point options that must be passed
-   to the assembler when FPXX support exists.  Prior to that point the
-   assembler could accept the options but were not required for
-   correctness.  We only add the options when absolutely necessary
-   because passing -msoft-float to the assembler will cause it to reject
-   all hard-float instructions which may require some user code to be
-   updated.  */
-
-#ifdef HAVE_AS_DOT_MODULE
-#define FP_ASM_SPEC "\
-%{mhard-float} %{msoft-float} \
-%{msingle-float} %{mdouble-float}"
-#else
-#define FP_ASM_SPEC
-#endif
-
 #undef ASM_SPEC
 #define ASM_SPEC "\
 %{G*} %(endian_spec) %{mips1} %{mips2} %{mips3} %{mips4} \
@@ -1204,8 +1188,7 @@ struct mips_cpu_info {
 %{mfp32} %{mfp64} %{mnan=*} \
 %{mshared} %{mno-shared} \
 %{msym32} %{mno-sym32} \
-%{mtune=*}" \
-FP_ASM_SPEC "\
+%{mtune=*} \
 %(subtarget_asm_spec)"
 
 /* Extra switches sometimes passed to the linker.  */
@@ -2884,9 +2867,6 @@ while (0)
    ? MIPS_MAX_MOVE_BYTES_STRAIGHT / MOVE_MAX		\
    : MIPS_CALL_RATIO / 2)
 
-#define MOVE_BY_PIECES_P(SIZE, ALIGN) \
-  mips_move_by_pieces_p (SIZE, ALIGN)
-
 /* For CLEAR_RATIO, when optimizing for size, give a better estimate
    of the length of a memset call, but use the default otherwise.  */
 
@@ -2899,9 +2879,6 @@ while (0)
 
 #define SET_RATIO(speed) \
   ((speed) ? 15 : MIPS_CALL_RATIO - 2)
-
-#define STORE_BY_PIECES_P(SIZE, ALIGN) \
-  mips_store_by_pieces_p (SIZE, ALIGN)
 
 /* Since the bits of the _init and _fini function is spread across
    many object files, each potentially with its own GP, we must assume

@@ -207,7 +207,7 @@ typedef enum
 unit_advance;
 
 typedef enum
-{READING, WRITING, LIST_READING, LIST_WRITING}
+{READING, WRITING}
 unit_mode;
 
 typedef enum

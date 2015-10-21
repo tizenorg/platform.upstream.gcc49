@@ -1,10 +1,23 @@
 /* Functional tests for the function hotpatching feature.  */
 
-/* { dg-do compile } */
-/* { dg-options "-O3 -mzarch" } */
+/* { dg-do run } */
+/* { dg-options "-O3 -mzarch -mhotpatch" } */
 
-__attribute__((hotpatch(0,-1)))
+#include <stdio.h>
+
+int hp1(void)
+{
+  int nested1(void) /* { dg-warning "hotpatching is not compatible with nested functions" } */
+  { return 1; }
+
+  __attribute__ ((hotpatch))
+  int nested2(void) /* { dg-warning "hotpatching is not compatible with nested functions" } */
+  { return 1; }
+
+  return nested1() - nested2();
+}
+
 int main (void)
-{/* { dg-error "attribute is not a comma separated pair of non-negative integer constants or too large" } */
-  return 0;
+{
+  return hp1();
 }

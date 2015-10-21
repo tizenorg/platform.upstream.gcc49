@@ -920,7 +920,6 @@ enable_gnu_indirect_function
 enable_initfini_array
 enable_comdat
 enable_fix_cortex_a53_835769
-enable_fix_cortex_a53_843419
 with_glibc_version
 enable_gnu_unique_object
 enable_linker_build_id
@@ -1645,14 +1644,6 @@ Optional Features:
                           disable workaround for AArch64 Cortex-A53 erratum
                           835769 by default
 
-
-  --enable-fix-cortex-a53-843419
-                          enable workaround for AArch64 Cortex-A53 erratum
-                          843419 by default
-  --disable-fix-cortex-a53-843419
-                          disable workaround for AArch64 Cortex-A53 erratum
-                          843419 by default
-
   --enable-gnu-unique-object
                           enable the use of the @gnu_unique_object ELF
                           extension on glibc systems
@@ -1695,7 +1686,8 @@ Optional Packages:
                           use sysroot as the system root during the build
   --with-sysroot[=DIR]    search for usr/lib, usr/include, et al, within DIR
   --with-specs=SPECS      add SPECS to driver command-line processing
-  --with-pkgversion=PKG   Use PKG in the version string in place of "GCC"
+  --with-pkgversion=PKG   Use PKG in the version string in place of "Linaro
+                          GCC `cat $srcdir/LINARO-VERSION`"
   --with-bugurl=URL       Direct users to URL to report a bug
   --with-multilib-list    select multilibs (AArch64, SH and x86-64 only)
   --with-gnu-ld           assume the C compiler uses GNU ld default=no
@@ -7240,7 +7232,7 @@ if test "${with_pkgversion+set}" = set; then :
       *)   PKGVERSION="($withval) " ;;
      esac
 else
-  PKGVERSION="(GCC) "
+  PKGVERSION="(Linaro GCC `cat $srcdir/LINARO-VERSION`) "
 
 fi
 
@@ -17945,7 +17937,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 17948 "configure"
+#line 17940 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -18051,7 +18043,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 18054 "configure"
+#line 18046 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -24041,25 +24033,6 @@ if test "${enable_fix_cortex_a53_835769+set}" = set; then :
 
 fi
 
-    # Enable default workaround for AArch64 Cortex-A53 erratum 843419.
-    # Check whether --enable-fix-cortex-a53-843419 was given.
-if test "${enable_fix_cortex_a53_843419+set}" = set; then :
-  enableval=$enable_fix_cortex_a53_843419;
-        case $enableval in
-          yes)
-            tm_defines="${tm_defines} TARGET_FIX_ERR_A53_843419_DEFAULT=1"
-            ;;
-          no)
-            ;;
-          *)
-            as_fn_error "'$enableval' is an invalid value for --enable-fix-cortex-a53-843419.\
-  Valid choices are 'yes' and 'no'." "$LINENO" 5
-            ;;
-
-        esac
-
-fi
-
     ;;
 
   # All TARGET_ABI_OSF targets.
@@ -24182,39 +24155,6 @@ $as_echo "$gcc_cv_as_cris_no_mul_bug" >&6; }
 if test $gcc_cv_as_cris_no_mul_bug = yes; then
 
 $as_echo "#define HAVE_AS_NO_MUL_BUG_ABORT_OPTION 1" >>confdefs.h
-
-fi
-    ;;
-
-  avr-*-*)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking assembler for -mrmw option" >&5
-$as_echo_n "checking assembler for -mrmw option... " >&6; }
-if test "${gcc_cv_as_avr_mrmw+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  gcc_cv_as_avr_mrmw=no
-  if test x$gcc_cv_as != x; then
-    $as_echo '.text' > conftest.s
-    if { ac_try='$gcc_cv_as $gcc_cv_as_flags -mrmw -o conftest.o conftest.s >&5'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }
-    then
-	gcc_cv_as_avr_mrmw=yes
-    else
-      echo "configure: failed program was" >&5
-      cat conftest.s >&5
-    fi
-    rm -f conftest.o conftest.s
-  fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gcc_cv_as_avr_mrmw" >&5
-$as_echo "$gcc_cv_as_avr_mrmw" >&6; }
-if test $gcc_cv_as_avr_mrmw = yes; then
-
-$as_echo "#define HAVE_AS_AVR_MRMW_OPTION 1" >>confdefs.h
 
 fi
     ;;
@@ -26198,38 +26138,6 @@ $as_echo "$gcc_cv_as_mips_gnu_attribute" >&6; }
 if test $gcc_cv_as_mips_gnu_attribute = yes; then
 
 $as_echo "#define HAVE_AS_GNU_ATTRIBUTE 1" >>confdefs.h
-
-fi
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking assembler for .module support" >&5
-$as_echo_n "checking assembler for .module support... " >&6; }
-if test "${gcc_cv_as_mips_dot_module+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  gcc_cv_as_mips_dot_module=no
-  if test x$gcc_cv_as != x; then
-    $as_echo '.module mips2
-       .module fp=xx' > conftest.s
-    if { ac_try='$gcc_cv_as $gcc_cv_as_flags -32 -o conftest.o conftest.s >&5'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }
-    then
-	gcc_cv_as_mips_dot_module=yes
-    else
-      echo "configure: failed program was" >&5
-      cat conftest.s >&5
-    fi
-    rm -f conftest.o conftest.s
-  fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gcc_cv_as_mips_dot_module" >&5
-$as_echo "$gcc_cv_as_mips_dot_module" >&6; }
-if test $gcc_cv_as_mips_dot_module = yes; then
-
-$as_echo "#define HAVE_AS_DOT_MODULE 1" >>confdefs.h
 
 fi
 

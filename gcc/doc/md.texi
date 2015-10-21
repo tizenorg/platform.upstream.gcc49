@@ -2117,27 +2117,6 @@ Altivec vector register
 @item wa
 Any VSX register if the -mvsx option was used or NO_REGS.
 
-When using any of the register constraints (@code{wa}, @code{wd},
-@code{wf}, @code{wg}, @code{wh}, @code{wi}, @code{wj}, @code{wk},
-@code{wl}, @code{wm}, @code{ws}, @code{wt}, @code{wu}, @code{wv},
-@code{ww}, or @code{wy}) that take VSX registers, you must use
-@code{%x<n>} in the template so that the correct register is used.
-Otherwise the register number output in the assembly file will be
-incorrect if an Altivec register is an operand of a VSX instruction
-that expects VSX register numbering.
-
-@smallexample
-asm ("xvadddp %x0,%x1,%x2" : "=wa" (v1) : "wa" (v2), "wa" (v3));
-@end smallexample
-
-is correct, but:
-
-@smallexample
-asm ("xvadddp %0,%1,%2" : "=wa" (v1) : "wa" (v2), "wa" (v3));
-@end smallexample
-
-is not correct.
-
 @item wd
 VSX vector register to hold vector double data or NO_REGS.
 
@@ -4845,29 +4824,48 @@ it is unspecified which of the two operands is returned as the result.
 @cindex @code{reduc_smax_@var{m}} instruction pattern
 @item @samp{reduc_smin_@var{m}}, @samp{reduc_smax_@var{m}}
 Find the signed minimum/maximum of the elements of a vector. The vector is
-operand 1, and the scalar result is stored in the least significant bits of
+operand 1, and the result is stored in the least significant bits of
 operand 0 (also a vector). The output and input vector should have the same
-modes.
+modes. These are legacy optabs, and platforms should prefer to implement
+@samp{reduc_smin_scal_@var{m}} and @samp{reduc_smax_scal_@var{m}}.
 
 @cindex @code{reduc_umin_@var{m}} instruction pattern
 @cindex @code{reduc_umax_@var{m}} instruction pattern
 @item @samp{reduc_umin_@var{m}}, @samp{reduc_umax_@var{m}}
 Find the unsigned minimum/maximum of the elements of a vector. The vector is
-operand 1, and the scalar result is stored in the least significant bits of
+operand 1, and the result is stored in the least significant bits of
 operand 0 (also a vector). The output and input vector should have the same
-modes.
+modes. These are legacy optabs, and platforms should prefer to implement
+@samp{reduc_umin_scal_@var{m}} and @samp{reduc_umax_scal_@var{m}}.
 
 @cindex @code{reduc_splus_@var{m}} instruction pattern
-@item @samp{reduc_splus_@var{m}}
-Compute the sum of the signed elements of a vector. The vector is operand 1,
-and the scalar result is stored in the least significant bits of operand 0
-(also a vector). The output and input vector should have the same modes.
-
 @cindex @code{reduc_uplus_@var{m}} instruction pattern
-@item @samp{reduc_uplus_@var{m}}
-Compute the sum of the unsigned elements of a vector. The vector is operand 1,
-and the scalar result is stored in the least significant bits of operand 0
+@item @samp{reduc_splus_@var{m}}, @samp{reduc_uplus_@var{m}}
+Compute the sum of the signed/unsigned elements of a vector. The vector is
+operand 1, and the result is stored in the least significant bits of operand 0
 (also a vector). The output and input vector should have the same modes.
+These are legacy optabs, and platforms should prefer to implement
+@samp{reduc_plus_scal_@var{m}}.
+
+@cindex @code{reduc_smin_scal_@var{m}} instruction pattern
+@cindex @code{reduc_smax_scal_@var{m}} instruction pattern
+@item @samp{reduc_smin_scal_@var{m}}, @samp{reduc_smax_scal_@var{m}}
+Find the signed minimum/maximum of the elements of a vector. The vector is
+operand 1, and operand 0 is the scalar result, with mode equal to the mode of
+the elements of the input vector.
+
+@cindex @code{reduc_umin_scal_@var{m}} instruction pattern
+@cindex @code{reduc_umax_scal_@var{m}} instruction pattern
+@item @samp{reduc_umin_scal_@var{m}}, @samp{reduc_umax_scal_@var{m}}
+Find the unsigned minimum/maximum of the elements of a vector. The vector is
+operand 1, and operand 0 is the scalar result, with mode equal to the mode of
+the elements of the input vector.
+
+@cindex @code{reduc_plus_scal_@var{m}} instruction pattern
+@item @samp{reduc_plus_scal_@var{m}}
+Compute the sum of the elements of a vector. The vector is operand 1, and
+operand 0 is the scalar result, with mode equal to the mode of the elements of
+the input vector.
 
 @cindex @code{sdot_prod@var{m}} instruction pattern
 @item @samp{sdot_prod@var{m}}
@@ -4888,10 +4886,9 @@ operand 1. Add operand 1 to operand 2 and place the widened result in
 operand 0. (This is used express accumulation of elements into an accumulator
 of a wider mode.)
 
-@cindex @code{vec_shl_@var{m}} instruction pattern
 @cindex @code{vec_shr_@var{m}} instruction pattern
-@item @samp{vec_shl_@var{m}}, @samp{vec_shr_@var{m}}
-Whole vector left/right shift in bits.
+@item @samp{vec_shr_@var{m}}
+Whole vector right shift in bits.
 Operand 1 is a vector to be shifted.
 Operand 2 is an integer shift amount in bits.
 Operand 0 is where the resulting shifted vector is stored.
@@ -5340,10 +5337,18 @@ generating the instruction.
 The @code{ffs} built-in function of C always uses the mode which
 corresponds to the C data type @code{int}.
 
+@cindex @code{clrsb@var{m}2} instruction pattern
+@item @samp{clrsb@var{m}2}
+Count leading redundant sign bits.
+Store into operand 0 the number of redundant sign bits in operand 1, starting
+at the most significant bit position.
+A redundant sign bit is defined as any sign bit after the first. As such,
+this count will be one less than the count of leading sign bits.
+
 @cindex @code{clz@var{m}2} instruction pattern
 @item @samp{clz@var{m}2}
-Store into operand 0 the number of leading 0-bits in @var{x}, starting
-at the most significant bit position.  If @var{x} is 0, the
+Store into operand 0 the number of leading 0-bits in operand 1, starting
+at the most significant bit position.  If operand 1 is 0, the
 @code{CLZ_DEFINED_VALUE_AT_ZERO} (@pxref{Misc}) macro defines if
 the result is undefined or has a useful value.
 @var{m} is the mode of operand 0; operand 1's mode is
@@ -5352,8 +5357,8 @@ operand to that mode before generating the instruction.
 
 @cindex @code{ctz@var{m}2} instruction pattern
 @item @samp{ctz@var{m}2}
-Store into operand 0 the number of trailing 0-bits in @var{x}, starting
-at the least significant bit position.  If @var{x} is 0, the
+Store into operand 0 the number of trailing 0-bits in operand 1, starting
+at the least significant bit position.  If operand 1 is 0, the
 @code{CTZ_DEFINED_VALUE_AT_ZERO} (@pxref{Misc}) macro defines if
 the result is undefined or has a useful value.
 @var{m} is the mode of operand 0; operand 1's mode is
@@ -5362,15 +5367,15 @@ operand to that mode before generating the instruction.
 
 @cindex @code{popcount@var{m}2} instruction pattern
 @item @samp{popcount@var{m}2}
-Store into operand 0 the number of 1-bits in @var{x}.  @var{m} is the
+Store into operand 0 the number of 1-bits in operand 1.  @var{m} is the
 mode of operand 0; operand 1's mode is specified by the instruction
 pattern, and the compiler will convert the operand to that mode before
 generating the instruction.
 
 @cindex @code{parity@var{m}2} instruction pattern
 @item @samp{parity@var{m}2}
-Store into operand 0 the parity of @var{x}, i.e.@: the number of 1-bits
-in @var{x} modulo 2.  @var{m} is the mode of operand 0; operand 1's mode
+Store into operand 0 the parity of operand 1, i.e.@: the number of 1-bits
+in operand 1 modulo 2.  @var{m} is the mode of operand 0; operand 1's mode
 is specified by the instruction pattern, and the compiler will convert
 the operand to that mode before generating the instruction.
 

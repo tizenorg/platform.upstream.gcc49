@@ -973,24 +973,6 @@ dr_analyze_indices (struct data_reference *dr, loop_p nest, loop_p loop)
 				fold_convert (ssizetype, memoff));
 	      memoff = build_int_cst (TREE_TYPE (memoff), 0);
 	    }
-	  /* Adjust the offset so it is a multiple of the access type
-	     size and thus we separate bases that can possibly be used
-	     to produce partial overlaps (which the access_fn machinery
-	     cannot handle).  */
-	  double_int rem;
-	  if (TYPE_SIZE_UNIT (TREE_TYPE (ref))
-	      && TREE_CODE (TYPE_SIZE_UNIT (TREE_TYPE (ref))) == INTEGER_CST
-	      && !integer_zerop (TYPE_SIZE_UNIT (TREE_TYPE (ref))))
-	    rem = tree_to_double_int (off).mod
-		(tree_to_double_int (TYPE_SIZE_UNIT (TREE_TYPE (ref))), false,
-		 TRUNC_MOD_EXPR);
-	  else
-	    /* If we can't compute the remainder simply force the initial
-	       condition to zero.  */
-	    rem = tree_to_double_int (off);
-	  off = double_int_to_tree (ssizetype, tree_to_double_int (off) - rem);
-	  memoff = double_int_to_tree (TREE_TYPE (memoff), rem);
-	  /* And finally replace the initial condition.  */
 	  access_fn = chrec_replace_initial_condition
 	      (access_fn, fold_convert (orig_type, off));
 	  /* ???  This is still not a suitable base object for
@@ -1003,7 +985,6 @@ dr_analyze_indices (struct data_reference *dr, loop_p nest, loop_p loop)
 	  ref = fold_build2_loc (EXPR_LOCATION (ref),
 				 MEM_REF, TREE_TYPE (ref),
 				 base, memoff);
-	  DR_UNCONSTRAINED_BASE (dr) = true;
 	  access_fns.safe_push (access_fn);
 	}
     }
@@ -1415,8 +1396,7 @@ dr_may_alias_p (const struct data_reference *a, const struct data_reference *b,
      offset/overlap based analysis but have to rely on points-to
      information only.  */
   if (TREE_CODE (addr_a) == MEM_REF
-      && (DR_UNCONSTRAINED_BASE (a)
-	  || TREE_CODE (TREE_OPERAND (addr_a, 0)) == SSA_NAME))
+      && TREE_CODE (TREE_OPERAND (addr_a, 0)) == SSA_NAME)
     {
       /* For true dependences we can apply TBAA.  */
       if (flag_strict_aliasing
@@ -1432,8 +1412,7 @@ dr_may_alias_p (const struct data_reference *a, const struct data_reference *b,
 				       build_fold_addr_expr (addr_b));
     }
   else if (TREE_CODE (addr_b) == MEM_REF
-	   && (DR_UNCONSTRAINED_BASE (b)
-	       || TREE_CODE (TREE_OPERAND (addr_b, 0)) == SSA_NAME))
+	   && TREE_CODE (TREE_OPERAND (addr_b, 0)) == SSA_NAME)
     {
       /* For true dependences we can apply TBAA.  */
       if (flag_strict_aliasing

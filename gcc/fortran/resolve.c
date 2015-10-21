@@ -12864,13 +12864,10 @@ resolve_symbol (gfc_symbol *sym)
 	    {
 	      this_symtree = gfc_find_symtree (gfc_current_ns->sym_root,
 					       sym->name);
-	      if (this_symtree->n.sym == sym)
-		{
-		  symtree->n.sym->refs++;
-		  gfc_release_symbol (sym);
-		  this_symtree->n.sym = symtree->n.sym;
-		  return;
-		}
+	      gfc_release_symbol (sym);
+	      symtree->n.sym->refs++;
+	      this_symtree->n.sym = symtree->n.sym;
+	      return;
 	    }
 	}
 

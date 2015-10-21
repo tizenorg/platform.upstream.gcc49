@@ -2489,7 +2489,7 @@ sched_analyze_1 (struct deps_desc *deps, rtx x, rtx insn)
       /* Pending lists can't get larger with a readonly context.  */
       if (!deps->readonly
           && ((deps->pending_read_list_length + deps->pending_write_list_length)
-              > MAX_PENDING_LIST_LENGTH))
+              >= MAX_PENDING_LIST_LENGTH))
 	{
 	  /* Flush all pending reads and writes to prevent the pending lists
 	     from getting any larger.  Insn scheduling runs too slowly when
@@ -2700,7 +2700,7 @@ sched_analyze_2 (struct deps_desc *deps, rtx x, rtx insn)
 	  {
 	    if ((deps->pending_read_list_length
 		 + deps->pending_write_list_length)
-		> MAX_PENDING_LIST_LENGTH
+		>= MAX_PENDING_LIST_LENGTH
 		&& !DEBUG_INSN_P (insn))
 	      flush_pending_lists (deps, insn, true, true);
 	    add_insn_mem_dependence (deps, true, insn, x);
@@ -2828,35 +2828,42 @@ sched_analyze_2 (struct deps_desc *deps, rtx x, rtx insn)
     sched_deps_info->finish_rhs ();
 }
 
-/* Try to group comparison and the following conditional jump INSN if
-   they're already adjacent. This is to prevent scheduler from scheduling
-   them apart.  */
+/* Try to group two fuseable insns together to prevent scheduler
+   from scheduling them apart.  */
 
 static void
-try_group_insn (rtx insn)
+sched_macro_fuse_insns (rtx insn)
 {
-  unsigned int condreg1, condreg2;
-  rtx cc_reg_1;
   rtx prev;
 
-  if (!any_condjump_p (insn))
-    return;
+  if (any_condjump_p (insn))
+    {
+      unsigned int condreg1, condreg2;
+      rtx cc_reg_1;
+      targetm.fixed_condition_code_regs (&condreg1, &condreg2);
+      cc_reg_1 = gen_rtx_REG (CCmode, condreg1);
+      prev = prev_nonnote_nondebug_insn (insn);
+      if (!reg_referenced_p (cc_reg_1, PATTERN (insn))
+          || !prev
+          || !modified_in_p (cc_reg_1, prev))
+        return;
+    }
+  else
+    {
+      rtx insn_set = single_set (insn);
 
-  targetm.fixed_condition_code_regs (&condreg1, &condreg2);
-  cc_reg_1 = gen_rtx_REG (CCmode, condreg1);
-  prev = prev_nonnote_nondebug_insn (insn);
-  if (!reg_referenced_p (cc_reg_1, PATTERN (insn))
-      || !prev
-      || !modified_in_p (cc_reg_1, prev))
-    return;
+      prev = prev_nonnote_nondebug_insn (insn);
+      if (!prev
+          || !insn_set
+          || !single_set (prev)
+          || !modified_in_p (SET_DEST (insn_set), prev))
+        return;
 
-  /* Different microarchitectures support macro fusions for different
-     combinations of insn pairs.  */
-  if (!targetm.sched.macro_fusion_pair_p
-      || !targetm.sched.macro_fusion_pair_p (prev, insn))
-    return;
+    }
 
-  SCHED_GROUP_P (insn) = 1;
+  if (targetm.sched.macro_fusion_pair_p (prev, insn))
+    SCHED_GROUP_P (insn) = 1;
+
 }
 
 /* Analyze an INSN with pattern X to find all dependencies.  */
@@ -2885,7 +2892,7 @@ sched_analyze_insn (struct deps_desc *deps, rtx x, rtx insn)
   /* Group compare and branch insns for macro-fusion.  */
   if (targetm.sched.macro_fusion_p
       && targetm.sched.macro_fusion_p ())
-    try_group_insn (insn);
+    sched_macro_fuse_insns (insn);
 
   if (may_trap_p (x))
     /* Avoid moving trapping instructions across function calls that might
@@ -3195,8 +3202,8 @@ sched_analyze_insn (struct deps_desc *deps, rtx x, rtx insn)
 	  EXECUTE_IF_SET_IN_REG_SET (reg_pending_clobbers, 0, i, rsi)
 	    {
 	      struct deps_reg *reg_last = &deps->reg_last[i];
-	      if (reg_last->uses_length > MAX_PENDING_LIST_LENGTH
-		  || reg_last->clobbers_length > MAX_PENDING_LIST_LENGTH)
+	      if (reg_last->uses_length >= MAX_PENDING_LIST_LENGTH
+		  || reg_last->clobbers_length >= MAX_PENDING_LIST_LENGTH)
 		{
 		  add_dependence_list_and_free (deps, insn, &reg_last->sets, 0,
 						REG_DEP_OUTPUT, false);
@@ -3629,7 +3636,7 @@ deps_analyze_insn (struct deps_desc *deps, rtx insn)
                && sel_insn_is_speculation_check (insn)))
         {
           /* Keep the list a reasonable size.  */
-          if (deps->pending_flush_length++ > MAX_PENDING_LIST_LENGTH)
+          if (deps->pending_flush_length++ >= MAX_PENDING_LIST_LENGTH)
             flush_pending_lists (deps, insn, true, true);
           else
 	    deps->pending_jump_insns

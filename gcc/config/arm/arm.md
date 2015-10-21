@@ -205,17 +205,9 @@
 	  (const_string "yes")]
 	 (const_string "no")))
 
-; Allows an insn to disable certain alternatives for reasons other than
-; arch support.
-(define_attr "insn_enabled" "no,yes"
-  (const_string "yes"))
-
 ; Enable all alternatives that are both arch_enabled and insn_enabled.
  (define_attr "enabled" "no,yes"
-   (cond [(eq_attr "insn_enabled" "no")
-	  (const_string "no")
-
-	  (and (eq_attr "predicable_short_it" "no")
+   (cond [(and (eq_attr "predicable_short_it" "no")
 	       (and (eq_attr "predicated" "yes")
 	            (match_test "arm_restrict_it")))
 	  (const_string "no")
@@ -377,7 +369,11 @@
 
 (define_attr "generic_sched" "yes,no"
   (const (if_then_else
-          (ior (eq_attr "tune" "fa526,fa626,fa606te,fa626te,fmp626,fa726te,arm926ejs,arm1020e,arm1026ejs,arm1136js,arm1136jfs,cortexa5,cortexa7,cortexa8,cortexa9,cortexa12,cortexa15,cortexa53,cortexm4,marvell_pj4")
+          (ior (eq_attr "tune" "fa526,fa626,fa606te,fa626te,fmp626,fa726te,\
+                                arm926ejs,arm1020e,arm1026ejs,arm1136js,\
+                                arm1136jfs,cortexa5,cortexa7,cortexa8,\
+                                cortexa9,cortexa12,cortexa15,cortexa53,\
+                                cortexm4,cortexm7,marvell_pj4")
 	       (eq_attr "tune_cortexr4" "yes"))
           (const_string "no")
           (const_string "yes"))))
@@ -385,7 +381,9 @@
 (define_attr "generic_vfp" "yes,no"
   (const (if_then_else
 	  (and (eq_attr "fpu" "vfp")
-	       (eq_attr "tune" "!arm1020e,arm1022e,cortexa5,cortexa7,cortexa8,cortexa9,cortexa53,cortexm4,marvell_pj4")
+	       (eq_attr "tune" "!arm1020e,arm1022e,cortexa5,cortexa7,\
+                                cortexa8,cortexa9,cortexa53,cortexm4,\
+                                cortexm7,marvell_pj4")
 	       (eq_attr "tune_cortexr4" "no"))
 	  (const_string "yes")
 	  (const_string "no"))))
@@ -409,6 +407,7 @@
 (include "cortex-a53.md")
 (include "cortex-r4.md")
 (include "cortex-r4f.md")
+(include "cortex-m7.md")
 (include "cortex-m4.md")
 (include "cortex-m4-fpu.md")
 (include "vfp11.md")
@@ -2863,6 +2862,28 @@
     operands[1] = gen_lowpart (SImode, operands[1]);
   }"
   [(set_attr "length" "4,8")
+   (set_attr "predicable" "yes")
+   (set_attr "predicable_short_it" "no")
+   (set_attr "type" "multiple")]
+)
+
+(define_insn_and_split "*anddi_notdi_zesidi"
+  [(set (match_operand:DI 0 "s_register_operand" "=r")
+        (and:DI (not:DI (match_operand:DI 2 "s_register_operand" "r"))
+                (zero_extend:DI
+                 (match_operand:SI 1 "s_register_operand" "r"))))]
+  "TARGET_32BIT"
+  "#"
+  "TARGET_32BIT && reload_completed"
+  [(set (match_dup 0) (and:SI (not:SI (match_dup 2)) (match_dup 1)))
+   (set (match_dup 3) (const_int 0))]
+  "
+  {
+    operands[3] = gen_highpart (SImode, operands[0]);
+    operands[0] = gen_lowpart (SImode, operands[0]);
+    operands[2] = gen_lowpart (SImode, operands[2]);
+  }"
+  [(set_attr "length" "8")
    (set_attr "predicable" "yes")
    (set_attr "predicable_short_it" "no")
    (set_attr "type" "multiple")]
@@ -8906,7 +8927,7 @@
     return \"\";
   }"
   [(set_attr "conds" "use")
-   (set_attr "type" "f_sel<vfp_type>")]
+   (set_attr "type" "fcsel")]
 )
 
 (define_insn_and_split "*movsicc_insn"
@@ -9343,8 +9364,10 @@
   "TARGET_32BIT"
   "
   {
-    if (!REG_P (XEXP (operands[0], 0))
-       && (GET_CODE (XEXP (operands[0], 0)) != SYMBOL_REF))
+    if ((!REG_P (XEXP (operands[0], 0))
+	 && GET_CODE (XEXP (operands[0], 0)) != SYMBOL_REF)
+	|| (GET_CODE (XEXP (operands[0], 0)) == SYMBOL_REF
+	    && arm_is_long_call_p (SYMBOL_REF_DECL (XEXP (operands[0], 0)))))
      XEXP (operands[0], 0) = force_reg (SImode, XEXP (operands[0], 0));
 
     if (operands[2] == NULL_RTX)
@@ -9361,8 +9384,10 @@
   "TARGET_32BIT"
   "
   {
-    if (!REG_P (XEXP (operands[1], 0)) &&
-       (GET_CODE (XEXP (operands[1],0)) != SYMBOL_REF))
+    if ((!REG_P (XEXP (operands[1], 0))
+	 && GET_CODE (XEXP (operands[1], 0)) != SYMBOL_REF)
+	|| (GET_CODE (XEXP (operands[1], 0)) == SYMBOL_REF
+	    && arm_is_long_call_p (SYMBOL_REF_DECL (XEXP (operands[1], 0)))))
      XEXP (operands[1], 0) = force_reg (SImode, XEXP (operands[1], 0));
 
     if (operands[3] == NULL_RTX)
@@ -9848,38 +9873,34 @@
 
 ;; Patterns to allow combination of arithmetic, cond code and shifts
 
-(define_insn "*arith_shiftsi"
-  [(set (match_operand:SI 0 "s_register_operand" "=r,r,r,r")
-        (match_operator:SI 1 "shiftable_operator"
-          [(match_operator:SI 3 "shift_operator"
-             [(match_operand:SI 4 "s_register_operand" "r,r,r,r")
-              (match_operand:SI 5 "shift_amount_operand" "M,M,M,r")])
-           (match_operand:SI 2 "s_register_operand" "rk,rk,r,rk")]))]
+(define_insn "*<arith_shift_insn>_multsi"
+  [(set (match_operand:SI 0 "s_register_operand" "=r,r")
+	(shiftable_ops:SI
+	 (mult:SI (match_operand:SI 2 "s_register_operand" "r,r")
+		  (match_operand:SI 3 "power_of_two_operand" ""))
+	 (match_operand:SI 1 "s_register_operand" "rk,<t2_binop0>")))]
   "TARGET_32BIT"
-  "%i1%?\\t%0, %2, %4%S3"
+  "<arith_shift_insn>%?\\t%0, %1, %2, lsl %b3"
   [(set_attr "predicable" "yes")
    (set_attr "predicable_short_it" "no")
-   (set_attr "shift" "4")
-   (set_attr "arch" "a,t2,t2,a")
-   ;; Thumb2 doesn't allow the stack pointer to be used for 
-   ;; operand1 for all operations other than add and sub. In this case 
-   ;; the minus operation is a candidate for an rsub and hence needs
-   ;; to be disabled.
-   ;; We have to make sure to disable the fourth alternative if
-   ;; the shift_operator is MULT, since otherwise the insn will
-   ;; also match a multiply_accumulate pattern and validate_change
-   ;; will allow a replacement of the constant with a register
-   ;; despite the checks done in shift_operator.
-   (set_attr_alternative "insn_enabled"
-			 [(const_string "yes")
-			  (if_then_else
-			   (match_operand:SI 1 "add_operator" "")
-			   (const_string "yes") (const_string "no"))
-			  (const_string "yes")
-			  (if_then_else
-			   (match_operand:SI 3 "mult_operator" "")
-			   (const_string "no") (const_string "yes"))])
-   (set_attr "type" "alu_shift_imm,alu_shift_imm,alu_shift_imm,alu_shift_reg")])
+   (set_attr "shift" "2")
+   (set_attr "arch" "a,t2")
+   (set_attr "type" "alu_shift_imm")])
+
+(define_insn "*<arith_shift_insn>_shiftsi"
+  [(set (match_operand:SI 0 "s_register_operand" "=r,r,r")
+	(shiftable_ops:SI
+	 (match_operator:SI 2 "shift_nomul_operator"
+	  [(match_operand:SI 3 "s_register_operand" "r,r,r")
+	   (match_operand:SI 4 "shift_amount_operand" "M,M,r")])
+	 (match_operand:SI 1 "s_register_operand" "rk,<t2_binop0>,rk")))]
+  "TARGET_32BIT && GET_CODE (operands[2]) != MULT"
+  "<arith_shift_insn>%?\\t%0, %1, %3%S2"
+  [(set_attr "predicable" "yes")
+   (set_attr "predicable_short_it" "no")
+   (set_attr "shift" "3")
+   (set_attr "arch" "a,t2,a")
+   (set_attr "type" "alu_shift_imm,alu_shift_imm,alu_shift_reg")])
 
 (define_split
   [(set (match_operand:SI 0 "s_register_operand" "")
@@ -10942,7 +10963,7 @@
     enum rtx_code rc = GET_CODE (operands[5]);
     operands[6] = gen_rtx_REG (mode, CC_REGNUM);
     gcc_assert (!(mode == CCFPmode || mode == CCFPEmode));
-    if (!REG_P (operands[2]) || REGNO (operands[2]) != REGNO (operands[0]))
+    if (REGNO (operands[2]) != REGNO (operands[0]))
       rc = reverse_condition (rc);
     else 
       {
@@ -12169,7 +12190,7 @@
     int num_regs = XVECLEN (operands[0], 0);
     char pattern[100];
     rtx op_list[2];
-    strcpy (pattern, \"fldmfdd\\t\");
+    strcpy (pattern, \"vldm\\t\");
     strcat (pattern, reg_names[REGNO (SET_DEST (XVECEXP (operands[0], 0, 0)))]);
     strcat (pattern, \"!, {\");
     op_list[0] = XEXP (XVECEXP (operands[0], 0, 1), 0);
@@ -12224,7 +12245,7 @@
 
 (define_insn "consttable_1"
   [(unspec_volatile [(match_operand 0 "" "")] VUNSPEC_POOL_1)]
-  "TARGET_EITHER"
+  "TARGET_THUMB1"
   "*
   making_const_table = TRUE;
   assemble_integer (operands[0], 1, BITS_PER_WORD, 1);
@@ -12237,23 +12258,14 @@
 
 (define_insn "consttable_2"
   [(unspec_volatile [(match_operand 0 "" "")] VUNSPEC_POOL_2)]
-  "TARGET_EITHER"
+  "TARGET_THUMB1"
   "*
-  {
-    rtx x = operands[0];
-    making_const_table = TRUE;
-    switch (GET_MODE_CLASS (GET_MODE (x)))
-      {
-      case MODE_FLOAT:
-	arm_emit_fp16_const (x);
-	break;
-      default:
-	assemble_integer (operands[0], 2, BITS_PER_WORD, 1);
-	assemble_zeros (2);
-	break;
-      }
-    return \"\";
-  }"
+  making_const_table = TRUE;
+  gcc_assert (GET_MODE_CLASS (GET_MODE (operands[0])) != MODE_FLOAT);
+  assemble_integer (operands[0], 2, BITS_PER_WORD, 1);
+  assemble_zeros (2);
+  return \"\";
+  "
   [(set_attr "length" "4")
    (set_attr "type" "no_insn")]
 )
@@ -12268,12 +12280,15 @@
     switch (GET_MODE_CLASS (GET_MODE (x)))
       {
       case MODE_FLOAT:
-	{
-	  REAL_VALUE_TYPE r;
-	  REAL_VALUE_FROM_CONST_DOUBLE (r, x);
-	  assemble_real (r, GET_MODE (x), BITS_PER_WORD);
-	  break;
-	}
+ 	if (GET_MODE (x) == HFmode)
+ 	  arm_emit_fp16_const (x);
+ 	else
+ 	  {
+ 	    REAL_VALUE_TYPE r;
+ 	    REAL_VALUE_FROM_CONST_DOUBLE (r, x);
+ 	    assemble_real (r, GET_MODE (x), BITS_PER_WORD);
+ 	  }
+ 	break;
       default:
 	/* XXX: Sometimes gcc does something really dumb and ends up with
 	   a HIGH in a constant pool entry, usually because it's trying to
@@ -12379,6 +12394,7 @@
   "TARGET_32BIT && arm_arch5"
   "clz%?\\t%0, %1"
   [(set_attr "predicable" "yes")
+   (set_attr "predicable_short_it" "no")
    (set_attr "type" "clz")])
 
 (define_insn "rbitsi2"
@@ -12387,6 +12403,7 @@
   "TARGET_32BIT && arm_arch_thumb2"
   "rbit%?\\t%0, %1"
   [(set_attr "predicable" "yes")
+   (set_attr "predicable_short_it" "no")
    (set_attr "type" "clz")])
 
 (define_expand "ctzsi2"
@@ -12562,6 +12579,8 @@
    rev%?\t%0, %1"
   [(set_attr "arch" "t1,t2,32")
    (set_attr "length" "2,2,4")
+   (set_attr "predicable" "no,yes,yes")
+   (set_attr "predicable_short_it" "no")
    (set_attr "type" "rev")]
 )
 
@@ -12674,6 +12693,44 @@
    rev16\t%0, %1
    rev16%?\t%0, %1
    rev16%?\t%0, %1"
+  [(set_attr "arch" "t1,t2,32")
+   (set_attr "length" "2,2,4")
+   (set_attr "type" "rev")]
+)
+
+;; There are no canonicalisation rules for the position of the lshiftrt, ashift
+;; operations within an IOR/AND RTX, therefore we have two patterns matching
+;; each valid permutation.
+
+(define_insn "arm_rev16si2"
+  [(set (match_operand:SI 0 "register_operand" "=l,l,r")
+        (ior:SI (and:SI (ashift:SI (match_operand:SI 1 "register_operand" "l,l,r")
+                                   (const_int 8))
+                        (match_operand:SI 3 "const_int_operand" "n,n,n"))
+                (and:SI (lshiftrt:SI (match_dup 1)
+                                     (const_int 8))
+                        (match_operand:SI 2 "const_int_operand" "n,n,n"))))]
+  "arm_arch6
+   && aarch_rev16_shleft_mask_imm_p (operands[3], SImode)
+   && aarch_rev16_shright_mask_imm_p (operands[2], SImode)"
+  "rev16\\t%0, %1"
+  [(set_attr "arch" "t1,t2,32")
+   (set_attr "length" "2,2,4")
+   (set_attr "type" "rev")]
+)
+
+(define_insn "arm_rev16si2_alt"
+  [(set (match_operand:SI 0 "register_operand" "=l,l,r")
+        (ior:SI (and:SI (lshiftrt:SI (match_operand:SI 1 "register_operand" "l,l,r")
+                                     (const_int 8))
+                        (match_operand:SI 2 "const_int_operand" "n,n,n"))
+                (and:SI (ashift:SI (match_dup 1)
+                                   (const_int 8))
+                        (match_operand:SI 3 "const_int_operand" "n,n,n"))))]
+  "arm_arch6
+   && aarch_rev16_shleft_mask_imm_p (operands[3], SImode)
+   && aarch_rev16_shright_mask_imm_p (operands[2], SImode)"
+  "rev16\\t%0, %1"
   [(set_attr "arch" "t1,t2,32")
    (set_attr "length" "2,2,4")
    (set_attr "type" "rev")]

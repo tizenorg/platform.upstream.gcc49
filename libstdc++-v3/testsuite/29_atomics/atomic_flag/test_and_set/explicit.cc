@@ -1,5 +1,4 @@
 // { dg-options "-std=gnu++0x" }
-// { dg-require-thread-fence "" }
 
 // Copyright (C) 2008-2014 Free Software Foundation, Inc.
 //

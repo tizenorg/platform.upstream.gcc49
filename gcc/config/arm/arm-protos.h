@@ -126,7 +126,6 @@ extern int arm_max_const_double_inline_cost (void);
 extern int arm_const_double_inline_cost (rtx);
 extern bool arm_const_double_by_parts (rtx);
 extern bool arm_const_double_by_immediates (rtx);
-extern const char *fp_immediate_constant (rtx);
 extern void arm_emit_call_insn (rtx, rtx);
 extern const char *output_call (rtx *);
 extern const char *output_call_mem (rtx *);
@@ -150,7 +149,7 @@ extern bool arm_is_long_call_p (tree);
 extern int    arm_emit_vector_const (FILE *, rtx);
 extern void arm_emit_fp16_const (rtx c);
 extern const char * arm_output_load_gr (rtx *);
-extern const char *vfp_output_fstmd (rtx *);
+extern const char *vfp_output_vstmd (rtx *);
 extern void arm_output_multireg_pop (rtx *, bool, rtx, bool, bool);
 extern void arm_set_return_address (rtx, rtx);
 extern int arm_eliminable_register (rtx);
@@ -273,6 +272,11 @@ struct tune_params
   const struct cpu_vec_costs* vec_costs;
   /* Prefer Neon for 64-bit bitops.  */
   bool prefer_neon_for_64bits;
+  /* Prefer 32-bit encoding instead of flag-setting 16-bit encoding.  */
+  bool disparage_flag_setting_t16_encodings;
+  /* Prefer 32-bit encoding instead of 16-bit encoding where subset of flags
+     would be set.  */
+  bool disparage_partial_flag_setting_t16_encodings;
 };
 
 extern const struct tune_params *current_tune;

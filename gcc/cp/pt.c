@@ -13912,7 +13912,7 @@ tsubst_expr (tree t, tree args, tsubst_flags_t complain, tree in_decl,
       tmp = tsubst_omp_clauses (OMP_TARGET_UPDATE_CLAUSES (t), false,
 				args, complain, in_decl);
       t = copy_node (t);
-      OMP_TARGET_UPDATE_CLAUSES (t) = tmp;
+      OMP_CLAUSES (t) = tmp;
       add_stmt (t);
       break;
 
@@ -19794,18 +19794,13 @@ instantiate_decl (tree d, int defer_ok,
 			      args,
 			      tf_warning_or_error, NULL_TREE,
 			      /*integral_constant_expression_p=*/false);
-	  /* If instantiating the initializer involved instantiating this
-	     again, don't call cp_finish_decl twice.  */
-	  if (!DECL_INITIAL (d))
-	    {
-	      /* Make sure the initializer is still constant, in case of
-		 circular dependency (template/instantiate6.C). */
-	      const_init
-		= DECL_INITIALIZED_BY_CONSTANT_EXPRESSION_P (code_pattern);
-	      cp_finish_decl (d, init, /*init_const_expr_p=*/const_init,
-			      /*asmspec_tree=*/NULL_TREE,
-			      LOOKUP_ONLYCONVERTING);
-	    }
+	  /* Make sure the initializer is still constant, in case of
+	     circular dependency (template/instantiate6.C). */
+	  const_init
+	    = DECL_INITIALIZED_BY_CONSTANT_EXPRESSION_P (code_pattern);
+	  cp_finish_decl (d, init, /*init_const_expr_p=*/const_init,
+			  /*asmspec_tree=*/NULL_TREE,
+			  LOOKUP_ONLYCONVERTING);
 	  pop_nested_class ();
 	  pop_nested_namespace (ns);
 	}

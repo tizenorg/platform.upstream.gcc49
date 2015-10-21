@@ -178,11 +178,11 @@ namespace __profile
 
       pointer
       data() noexcept
-      { return _AT_Type::_S_ptr(_M_elems); }
+      { return std::__addressof(_AT_Type::_S_ref(_M_elems, 0)); }
 
       const_pointer
       data() const noexcept
-      { return _AT_Type::_S_ptr(_M_elems); }
+      { return std::__addressof(_AT_Type::_S_ref(_M_elems, 0)); }
     };
 
   // Array comparisons.
