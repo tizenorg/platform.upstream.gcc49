@@ -65,11 +65,12 @@ BuildRequires: gettext-devel
 BuildRequires: makeinfo
 ## until here, but at least renaming and patching info files breaks this
 BuildRequires: gcc-c++
-BuildRequires: cloog-isl-devel
-BuildRequires: isl-devel
-BuildRequires: mpc-devel
+BuildRequires: cloog-static
+BuildRequires: isl-static
+BuildRequires: mpc-static
 BuildRequires: zlib-devel
-BuildRequires: mpfr-devel
+BuildRequires: mpfr-static
+BuildRequires: gmp-static
 %ifarch x86_64
 BuildRequires: glibc-devel-32bit
 %endif
