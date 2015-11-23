@@ -50,7 +50,7 @@
 %define target_arch %{target_cpu}-tizen-linux-gnu%{?target_abi}
 %define libdir %{!?cross:%{_libdir}}%{?cross:%{_prefix}/lib%{?aarch64:64}}
 # this is needed until we can change upstream/4.9.2 tag in git
-%define real_version 4.9.2
+%define real_version 4.9.3
 %define libsubdir %{libdir}/gcc/%{target_arch}/%{real_version}
 #%%define libsubdir %%{libdir}/gcc/%%{target_arch}/%%{version}
 
