@@ -65,12 +65,7 @@ BuildRequires: gettext-devel
 BuildRequires: makeinfo
 ## until here, but at least renaming and patching info files breaks this
 BuildRequires: gcc-c++
-BuildRequires: cloog-static
-BuildRequires: isl-static
-BuildRequires: mpc-static
 BuildRequires: zlib-devel
-BuildRequires: mpfr-static
-BuildRequires: gmp-static
 %ifarch x86_64
 BuildRequires: glibc-devel-32bit
 %endif
@@ -87,6 +82,11 @@ URL:           http://gcc.gnu.org/
 Version:       4.9
 Release:       0
 Source:        gcc-%{version}.tar.bz2
+Source10: gmp-6.0.0a.tar.bz2
+Source11: mpfr-3.1.2.tar.gz
+Source12: mpc-1.0.tar.gz
+Source13: isl-0.12.2.tar.bz2
+Source14: cloog-0.18.1.tar.gz
 Group:         Development/Building
 Summary:       The GNU C Compiler and Support Files
 License:       GPL-3.0+
@@ -624,6 +624,17 @@ A foreign function interface is the popular name for the interface that allows c
 
 %prep
 %setup -q -n gcc-%{version}
+
+tar xf %{SOURCE10}
+ln -sf gmp-6.0.0 gmp
+tar xf %{SOURCE11}
+ln -sf mpfr-3.1.2 mpfr
+tar xf %{SOURCE12}
+ln -sf mpc-1.0 mpc
+tar xf %{SOURCE13}
+ln -sf isl-0.12.2 isl
+tar xf %{SOURCE14}
+ln -sf cloog-0.18.1 cloog
 
 %build
 rm -rf obj
