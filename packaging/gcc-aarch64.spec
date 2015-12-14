@@ -82,7 +82,7 @@ URL:           http://gcc.gnu.org/
 Version:       4.9
 Release:       0
 Source:        gcc-%{version}.tar.bz2
-Source10: gmp-6.0.0a.tar.bz2
+Source10: gmp-6.0.0b.tar.bz2
 Source11: mpfr-3.1.2.tar.gz
 Source12: mpc-1.0.tar.gz
 Source13: isl-0.12.2.tar.bz2
