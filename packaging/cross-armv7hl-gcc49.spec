@@ -83,6 +83,7 @@ Source1:	change_spec
 Source3:	gcc49-rpmlintrc
 Source4:	ecj.jar
 Source5:	baselibs.conf
+Source6: 	gmp-6.0.0b.tar.bz2
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
@@ -162,6 +163,10 @@ gcc-obj-c++.
 
 %prep
 %setup -q -n gcc-%{version}
+
+# prepare embedded packages
+tar xf %{SOURCE6}
+ln -sf gmp-6.0.0 gmp
 
 # We are configuring ppc as ppc64 but with switched multilibs.  Adjust
 # the libstdc++ abi testsuite baseline files accordingly
