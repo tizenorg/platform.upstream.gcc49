@@ -12,6 +12,7 @@
 # Please submit bugfixes or comments via http://www.suse.de/feedback/
 #
 
+%define embed_packages 1
 %define build_cp 1
 %define build_ada 0
 %define build_libjava 0
@@ -51,14 +52,18 @@ BuildRequires: bison
 BuildRequires: flex
 BuildRequires: gettext-devel
 BuildRequires: glibc-devel-32bit
+%if %{!embed_packages}
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
+%endif
 BuildRequires: perl
 BuildRequires: makeinfo
 BuildRequires: zlib-devel
 %ifarch %ix86 x86_64 ppc ppc64 s390 s390x ia64 %sparc hppa %arm
+%if %{!embed_packages}
 BuildRequires: cloog-devel
 BuildRequires: ppl-devel
+%endif
 %endif
 %ifarch ia64
 BuildRequires: libunwind-devel
@@ -83,7 +88,15 @@ Source1:	change_spec
 Source3:	gcc49-rpmlintrc
 Source4:	ecj.jar
 Source5:	baselibs.conf
+# embed packages
+%if %{embed_packages}
 Source6: 	gmp-6.0.0b.tar.bz2
+Source7: 	mpc-1.0.tar.bz2
+Source8: 	mpfr-3.1.2.tar.bz2
+Source9: 	isl-0.12.tar.bz2
+# from cloog-isl package
+Source10: 	cloog-0.18.0.tar.gz
+%endif
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
@@ -164,9 +177,19 @@ gcc-obj-c++.
 %prep
 %setup -q -n gcc-%{version}
 
+%if %{embed_packages}
 # prepare embedded packages
 tar xf %{SOURCE6}
 ln -sf gmp-6.0.0 gmp
+tar xf %{SOURCE7}
+ln -sf mpfr-3.1.2 mpfr
+tar xf %{SOURCE8}
+ln -sf mpc-1.0 mpc
+tar xf %{SOURCE9}
+ln -sf isl-0.12 isl
+tar xf %{SOURCE10}
+ln -sf cloog-0.18.0 cloog
+%endif
 
 # We are configuring ppc as ppc64 but with switched multilibs.  Adjust
 # the libstdc++ abi testsuite baseline files accordingly

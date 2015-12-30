@@ -20,6 +20,7 @@ cat << EOF
 # Please submit bugfixes or comments via http://www.suse.de/feedback/
 #
 
+%define embed_packages 1
 %define build_cp 1
 %define build_ada 0
 %define build_libjava 0
@@ -59,14 +60,18 @@ BuildRequires: bison
 BuildRequires: flex
 BuildRequires: gettext-devel
 BuildRequires: glibc-devel-32bit
+%if %{!embed_packages}
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
+%endif
 BuildRequires: perl
 BuildRequires: makeinfo
 BuildRequires: zlib-devel
 %ifarch %ix86 x86_64 ppc ppc64 s390 s390x ia64 %sparc hppa %arm
+%if %{!embed_packages}
 BuildRequires: cloog-devel
 BuildRequires: ppl-devel
+%endif
 %endif
 %ifarch ia64
 BuildRequires: libunwind-devel
