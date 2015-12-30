@@ -91,9 +91,9 @@ Source5:	baselibs.conf
 # embed packages
 %if %{embed_packages}
 Source6: 	gmp-6.0.0b.tar.bz2
-Source7: 	mpc-1.0.tar.bz2
-Source8: 	mpfr-3.1.2.tar.bz2
-Source9: 	isl-0.12.tar.bz2
+Source7: 	mpc-1.0.tar.gz
+Source8: 	mpfr-3.1.2.tar.gz
+Source9: 	isl-0.12.tar.gz
 # from cloog-isl package
 Source10: 	cloog-0.18.0.tar.gz
 %endif
