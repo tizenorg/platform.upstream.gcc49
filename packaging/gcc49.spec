@@ -18,7 +18,7 @@
 # norootforbuild
 # icecream 0
 
-
+%define embed_packages 1
 %define build_ada 0
 
 %define quadmath_arch %ix86 x86_64 ia64
@@ -144,13 +144,19 @@ BuildRequires: makeinfo
 # until here, but at least renaming and patching info files breaks this
 BuildRequires: gcc-c++
 BuildRequires: glibc-devel-32bit
+%if !%{embed_packages}
+%error ERRRRRRRRRRRRRRRRRRRRRRRRRR1
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
+%endif
 BuildRequires: perl
 BuildRequires: zlib-devel
 %ifarch %ix86 x86_64 ppc ppc64 s390 s390x ia64 %sparc hppa %arm aarch64
+%if !%{embed_packages}
+%error ERRRRRRRRRRRRRRRRRRRRRRRRRR2
 BuildRequires: cloog-isl-devel
 BuildRequires: isl-devel
+%endif
 %endif
 %if %{build_ada}
 %define hostsuffix -4.9
@@ -251,7 +257,15 @@ Source1:	change_spec
 Source3:	gcc49-rpmlintrc
 Source4:	ecj.jar
 Source5:	baselibs.conf
+# embed packages
+%if %{embed_packages}
 Source6: 	gmp-6.0.0b.tar.bz2
+Source7: 	mpc-1.0.tar.gz
+Source8: 	mpfr-3.1.2.tar.gz
+#Source9: 	isl-0.12.tar.gz
+# from cloog-isl package
+#Source10: 	cloog-0.18.0.tar.gz
+%endif
 
 Group:          Development/Building
 Summary:	The GNU C Compiler and Support Files
@@ -1552,9 +1566,19 @@ Results from running the gcc and target library testsuites.
 %prep
 %setup -q -n gcc-%{version}
 
+%if %{embed_packages}
 # prepare embedded packages
 tar xf %{SOURCE6}
 ln -sf gmp-6.0.0 gmp
+tar xf %{SOURCE7}
+ln -sf mpc-1.0 mpc
+tar xf %{SOURCE8}
+ln -sf mpfr-3.1.2 mpfr
+#tar xf %{SOURCE9}
+#ln -sf isl-0.12 isl
+#tar xf %{SOURCE10}
+#ln -sf cloog-0.18.0 cloog
+%endif
 
 # We are configuring ppc as ppc64 but with switched multilibs.  Adjust
 # the libstdc++ abi testsuite baseline files accordingly
