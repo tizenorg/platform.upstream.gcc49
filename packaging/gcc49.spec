@@ -144,14 +144,14 @@ BuildRequires: makeinfo
 # until here, but at least renaming and patching info files breaks this
 BuildRequires: gcc-c++
 BuildRequires: glibc-devel-32bit
-%if %{!embed_packages}
+%if !%{embed_packages}
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
 %endif
 BuildRequires: perl
 BuildRequires: zlib-devel
 %ifarch %ix86 x86_64 ppc ppc64 s390 s390x ia64 %sparc hppa %arm aarch64
-%if %{!embed_packages}
+%if !%{embed_packages}
 BuildRequires: cloog-isl-devel
 BuildRequires: isl-devel
 %endif

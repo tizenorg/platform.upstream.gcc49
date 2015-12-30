@@ -60,7 +60,7 @@ BuildRequires: bison
 BuildRequires: flex
 BuildRequires: gettext-devel
 BuildRequires: glibc-devel-32bit
-%if %{!embed_packages}
+%if !%{embed_packages}
 BuildRequires: mpc-devel
 BuildRequires: mpfr-devel
 %endif
@@ -68,7 +68,7 @@ BuildRequires: perl
 BuildRequires: makeinfo
 BuildRequires: zlib-devel
 %ifarch %ix86 x86_64 ppc ppc64 s390 s390x ia64 %sparc hppa %arm
-%if %{!embed_packages}
+%if !%{embed_packages}
 BuildRequires: cloog-devel
 BuildRequires: ppl-devel
 %endif
